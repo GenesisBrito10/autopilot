@@ -68,11 +68,20 @@
               </h3>
               <div class="space-y-4">
                 <button @click="handleGenerateSignal"
-                        :disabled="isGeneratingSignal"
+                        :disabled="isGeneratingSignal || isTradeInProgress || isWaitingForEntryTime"
                         class="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                   <i :class="isGeneratingSignal ? 'fas fa-spinner fa-spin' : 'fas fa-wand-magic-sparkles'"></i>
-                  {{ isGeneratingSignal ? 'Gerando...' : 'Gerar Sinal' }}
+                  <span v-if="isGeneratingSignal">Gerando...</span>
+                  <span v-else-if="isWaitingForEntryTime">Aguardando Horário de Entrada</span>
+                  <span v-else-if="isTradeInProgress">Operação em Andamento</span>
+                  <span v-else>Gerar Sinal</span>
                 </button>
+                <p v-if="isTradeInProgress" class="text-xs text-amber-400 mt-2 text-center">
+                  <i class="fas fa-info-circle mr-1"></i> Conclua a operação atual antes de gerar um novo sinal
+                </p>
+                <p v-if="isWaitingForEntryTime" class="text-xs text-amber-400 mt-2 text-center">
+                  <i class="fas fa-clock mr-1"></i> Aguardando o horário de entrada para iniciar a operação
+                </p>
               </div>
             </div>
           </div>
@@ -384,6 +393,18 @@ function showTradeNotification(message, pair) {
 }
 
 const handleGenerateSignal = async () => {
+  // Verifica se já existe uma operação em andamento
+  if (isTradeInProgress.value) {
+    showToast('Não é possível gerar um novo sinal enquanto uma operação está em andamento.', 'warning', 6000);
+    return;
+  }
+  
+  // Verifica se está aguardando horário de entrada
+  if (isWaitingForEntryTime.value) {
+    showToast('Não é possível gerar um novo sinal enquanto aguarda o horário de entrada.', 'warning', 6000);
+    return;
+  }
+
   isGeneratingSignal.value = true;
   showToast('Buscando sinal...', 'info');
 
@@ -470,6 +491,9 @@ const showSignalConfirmationPopup = (signal) => {
       const msToWait = entryDate.getTime() - now.getTime();
 
       if (msToWait > 0) {
+        // Ativa o estado de aguardando horário de entrada
+        isWaitingForEntryTime.value = true;
+        
         // Notificação tipo toast fixa no canto superior direito até o horário de entrada, sem piscar
         let interval;
         let toastInstance = null;
@@ -511,6 +535,8 @@ const showSignalConfirmationPopup = (signal) => {
             if (diff <= 0) {
               clearInterval(interval);
               Swal.close();
+              // Desativa o estado de aguardando horário de entrada
+              isWaitingForEntryTime.value = false;
               resolve();
             }
           }, 1000);
@@ -526,8 +552,9 @@ const showSignalConfirmationPopup = (signal) => {
   });
 };
 
-// Variável para controlar se há uma operação em andamento
+// Variáveis para controlar o estado da operação
 const isTradeInProgress = ref(false);
+const isWaitingForEntryTime = ref(false); // Nova variável para controlar o aguardo do horário de entrada
 const currentTradeInfo = ref(null);
 
 const executeTradeFromSignal = async (signalData) => {

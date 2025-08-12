@@ -462,7 +462,7 @@ const showSignalConfirmationPopup = (signal) => {
     }
   }).then(async (result) => {
     if (result.isConfirmed) {
-      /* const entryDate = new Date(entry_time);
+      const entryDate = new Date(entry_time);
       entryDate.setHours(entryDate.getHours() - 3);
       entryDate.setSeconds(0, 0); // ignora os segundos
 
@@ -515,7 +515,7 @@ const showSignalConfirmationPopup = (signal) => {
             }
           }, 1000);
         });
-      } */
+      }
       const tradeData = {
         pair: pair,
         direction: trade_action === 'BUY' ? 'CALL' : 'PUT',

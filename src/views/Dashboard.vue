@@ -483,17 +483,27 @@ const showSignalConfirmationPopup = (signal) => {
     }
   }).then(async (result) => {
     if (result.isConfirmed) {
-      const entryDate = new Date(entry_time);
-      entryDate.setHours(entryDate.getHours() - 3);
-      entryDate.setSeconds(0, 0); // ignora os segundos
+      // Ajusta a hora de entrada para o timezone correto (subtrai 3 horas)
+      let entryDate = new Date(entry_time);
+      entryDate.setHours(entryDate.getHours() - 3); // Corrige para GMT-3
 
-      const now = new Date();
-      const msToWait = entryDate.getTime() - now.getTime();
+      entryDate.setSeconds(0, 0); // Ignora os segundos
 
-      if (msToWait > 0) {
+      console.log('Hora de entrada ajustada:', entryDate);
+
+      const serverTimeNow = await getServerTime();
+      console.log('Hora atual do servidor:', serverTimeNow);
+
+      const initialMsToWait = entryDate.getTime() - serverTimeNow.getTime();
+      console.log('Tempo de espera (ms):', initialMsToWait);
+
+      if (initialMsToWait > 0) {
         // Ativa o estado de aguardando horário de entrada
         isWaitingForEntryTime.value = true;
         
+        // Usa o relógio local para medir o tempo passado, garantindo que a contagem não se desvie
+        const countdownStartTime = Date.now();
+
         // Notificação tipo toast fixa no canto superior direito até o horário de entrada, sem piscar
         let interval;
         let toastInstance = null;
@@ -525,13 +535,15 @@ const showSignalConfirmationPopup = (signal) => {
             }
           }
 
-          updateToast(msToWait);
+          updateToast(initialMsToWait);
 
           interval = setInterval(() => {
-            const now = new Date();
-            let diff = entryDate.getTime() - now.getTime();
+            const elapsedTime = Date.now() - countdownStartTime;
+            let diff = initialMsToWait - elapsedTime;
+
             if (diff < 0) diff = 0;
             updateToast(diff);
+            
             if (diff <= 0) {
               clearInterval(interval);
               Swal.close();
@@ -704,6 +716,7 @@ const availableAssets = ref([]);
 function formatDateTime(dateStr, lang = 'pt-BR') {
   if (!dateStr) return '';
   const date = new Date(dateStr);
+  date.setHours(date.getHours() - 3); // Subtrai 3 horas
   return date.toLocaleDateString(lang, { day: '2-digit', month: '2-digit', year: 'numeric' }) +
     ' - ' + date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
 }
@@ -827,6 +840,35 @@ const getAvailableAssets = async () => {
   const { data } = await axios.get('/api/candles/digital', { params: { email, password } });
   return data;
 }
+
+const getServerTime = async () => {
+  try {
+    const response = await axios.get('/server-time', {
+      baseURL:'/'
+    });
+    
+    // Parse the server time directly without timezone adjustment
+    const serverDate = new Date(response.data.time);
+    
+    // Log the timezone offset for debugging
+    console.log('Server timezone offset (minutes):', serverDate.getTimezoneOffset());
+    
+    // No need to manually adjust for timezone as Date() handles it
+    // serverDate.setHours(serverDate.getHours() - 3); // Remove this line
+    
+    return serverDate;
+  } catch (error) {
+    console.error("Erro ao buscar a hora do servidor, usando hora local como fallback:", error);
+    
+    // Use local time as fallback
+    const localTime = new Date();
+    
+    // No need to manually adjust for timezone
+    // localTime.setHours(localTime.getHours() - 3); // Remove this line
+    
+    return localTime;
+  }
+};
 
 // Função para obter o access_token via login na API
 const getAccessToken = async () => {

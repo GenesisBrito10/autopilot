@@ -1,5 +1,5 @@
 <template>
-  <AppLayout>
+  <AppLayout :userName="userDisplayName">
     <!-- Container para notificações de operações em andamento -->
     <div id="trade-notification-container" class="fixed top-0 right-0 z-50"></div>
     <div class="min-h-screen">
@@ -123,7 +123,7 @@
             <h4 class="text-gray-400 text-sm">Taxa de Acerto</h4>
             <div class="mt-3 h-2 bg-slate-800 rounded-full overflow-hidden">
               <div class="h-full bg-gradient-to-r from-green-500 to-green-400"
-                :style="{ width: `${transactionStats.winPercent}%` }"></div>
+                :style="{ width: transactionStats.winPercent > 0 ? `${transactionStats.winPercent}%` : '0%' }"></div>
             </div>
           </div>
 
@@ -192,7 +192,9 @@
               <tbody>
                 <tr
                   v-for="(item, idx) in [...history].sort((a, b) => new Date(b.payload?.closeTime || b.createdAt) - new Date(a.payload?.closeTime || a.createdAt)).slice(0, 5)"
-                  :key="idx" class="border-t border-slate-800 hover:bg-slate-800/30 transition-colors">
+                  :key="idx" 
+                  class="border-t border-slate-800 hover:bg-slate-800/30 transition-colors cursor-pointer"
+                  @click="showTradeDetailModal(item.uniqueId)">
                   <td class="py-3 px-2 md:px-3">
                     <div class="flex items-center gap-1 md:gap-2">
                       <div class="flex -space-x-2 mr-1">
@@ -236,7 +238,6 @@ import Swal from 'sweetalert2'
 import AppLayout from '@/components/AppLayout.vue'
 import Apexchart from 'vue3-apexcharts'
 import axios from 'axios'
-import { io } from 'socket.io-client'
 const router = useRouter()
 
 // State variables
@@ -244,15 +245,21 @@ const userDisplayName = ref('Usuário(a)')
 const balance = ref(5000)
 const accountType = ref('demo')
 const isGeneratingSignal = ref(false)
-const selectedBroker = ref('homebroker')
 const history = ref([])
-const GALES = ref(2)
+// GALES será obtido das configurações do usuário
+
+// Watch para salvar o nome do usuário no localStorage quando for alterado
+watch(userDisplayName, (newValue) => {
+  if (newValue) {
+    localStorage.setItem('userName', newValue)
+  }
+})
 const initialBalance = ref(null)
 
 // Trading variables
 const selectedAsset = ref('EURUSD')
 const selectedTime = ref(1)
-const defaultUserSettings = { entryValue: 10, stopWin: 100, stopLoss: 100 }
+const defaultUserSettings = { entryValue: 10, gales: 2 }
 const userSettings = ref({ ...defaultUserSettings })
 const COLLECTION_NAME = 'autopilot'
 
@@ -590,21 +597,12 @@ const executeTradeFromSignal = async (signalData) => {
   await updateBalance();
   initialBalance.value = balance.value;
 
-  const maxAttempts = GALES.value + 1;
+  const maxAttempts = userSettings.value.gales + 1;
   let operationValue = userSettings.value.entryValue;
   let finalResult = { status: 'error', message: 'Operação não finalizada.' };
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    if (initialBalance.value !== null) {
-      const stopLoss = initialBalance.value - userSettings.value.stopLoss;
-      const stopWin = initialBalance.value + userSettings.value.stopWin;
-      if (balance.value <= stopLoss) {
-        finalResult = { status: 'error', message: 'Stop Loss atingido!' }; break;
-      }
-      if (balance.value >= stopWin) {
-        finalResult = { status: 'success', message: 'Stop Win atingido!' }; break;
-      }
-    }
     if (balance.value <= 0 || balance.value < operationValue) {
       finalResult = { status: 'error', message: 'Saldo insuficiente.' }; break;
     }
@@ -622,7 +620,6 @@ const executeTradeFromSignal = async (signalData) => {
       }
 
       updateToastStatus('Aguardando resultado da ordem...');
-      const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const orderStatus = await checkOrderStatus(orderResult.order.id, uniqueId);
 
       if (!orderStatus || !orderStatus.status) {
@@ -684,11 +681,21 @@ const executeTradeFromSignal = async (signalData) => {
 
 const transactionStats = computed(() => {
   if (!Array.isArray(history.value)) return { wins: 0, losses: 0, total: 0, winPercent: 0, totalProfit: 0 };
-  const wins = history.value.filter(tx => tx.payload.pnl > 0).length
-  const losses = history.value.filter(tx => tx.payload.pnl <= 0).length
-  const total = wins + losses
-  const winPercent = total ? Math.round((wins / total) * 100) : 0
-  const totalProfit = history.value.reduce((sum, tx) => sum + (tx.payload.pnl || 0), 0)
+  
+  // Filtragem correta para contar apenas transações válidas
+  const validTransactions = history.value.filter(tx => tx.payload && typeof tx.payload.pnl === 'number');
+  
+  // Conta wins e losses corretamente
+  const wins = validTransactions.filter(tx => tx.payload.pnl > 0).length;
+  const losses = validTransactions.filter(tx => tx.payload.pnl <= 0).length;
+  const total = wins + losses;
+  
+  // Calcula a porcentagem de vitórias
+  const winPercent = total > 0 ? Math.round((wins / total) * 100) : 0;
+  
+  // Calcula o lucro total
+  const totalProfit = validTransactions.reduce((sum, tx) => sum + (tx.payload.pnl || 0), 0);
+  
   return { wins, losses, total, winPercent, totalProfit }
 });
 
@@ -713,10 +720,15 @@ const switchAccount = async () => {
 
 const availableAssets = ref([]);
 
-function formatDateTime(dateStr, lang = 'pt-BR') {
+function formatDateTime(dateStr, lang = 'pt-BR', timeOnly = false) {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   date.setHours(date.getHours() - 3); // Subtrai 3 horas
+  
+  if (timeOnly) {
+    return date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+  }
+  
   return date.toLocaleDateString(lang, { day: '2-digit', month: '2-digit', year: 'numeric' }) +
     ' - ' + date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
 }
@@ -749,7 +761,8 @@ const showTransactionHistory = () => {
                 const pnl = item.payload?.pnl || 0;
                 const isWin = pnl >= 0;
                 return `
-                  <tr style='background:${idx % 2 === 0 ? "rgba(59,130,246,0.08)" : "rgba(99,102,241,0.10)"};color:${isWin ? '#60a5fa' : '#f87171'};'>
+                  <tr style='background:${idx % 2 === 0 ? "rgba(59,130,246,0.08)" : "rgba(99,102,241,0.10)"};color:${isWin ? '#60a5fa' : '#f87171'};cursor:pointer;' 
+                      onclick="showTradeDetails('${item.uniqueId}')">
                     
                     <td style='padding:10px 16px;white-space:nowrap;display:flex;align-items:center;gap:8px;font-weight:500;'>
                       <i class="fas ${isWin ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
@@ -771,7 +784,16 @@ const showTransactionHistory = () => {
         popup: 'max-w-2xl' // Limita a largura máxima em telas maiores
       },
       showCloseButton: true,
+      didOpen: () => {
+        // Adiciona a função de mostrar detalhes ao escopo global para o onclick funcionar
+        window.showTradeDetails = (uniqueId) => {
+          showTradeDetailModal(uniqueId);
+        };
+      },
       didClose: () => {
+        // Remove a função do escopo global quando o modal é fechado
+        delete window.showTradeDetails;
+        
         // Se havia uma operação em andamento, restaura a notificação
         if (isTradeInProgress.value && currentTradeInfo.value) {
           // Pequeno atraso para garantir que o modal anterior seja completamente fechado
@@ -783,15 +805,30 @@ const showTransactionHistory = () => {
   });
 }
 const startSdk = async () => {
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  if (user && user.firstName) {
+    userDisplayName.value = user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1)
+  } else {
     const email = localStorage.getItem('userEmail')
     const password = localStorage.getItem('userPassword')
     if (email && password) {
-        try {
-            await axios.post('/api/sdk/start', { email, password });
-        } catch (error) {
-            console.error("Erro ao iniciar SDK:", error);
+      try {
+        const response = await axios.post('/api/sdk/start', { email, password });
+        if (response.status === 200 && response.data && response.data.data) {
+          localStorage.setItem("user", JSON.stringify({
+            firstName: response.data.data.firstName || 'Usuário(a)',
+            email: email
+          }));
+          userDisplayName.value = response.data.data.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) || 'Usuário(a';
+        } else {
+          console.error("Erro ao iniciar SDK:", response.data);
         }
+      } catch (error) {
+        console.error("Erro ao iniciar SDK:", error);
+      }
     }
+  }
 };
 
 const buyDigital = async (payload) => {
@@ -1173,6 +1210,132 @@ onUnmounted(() => {
   delete window.showExitConfirmation;
 });
 
+// Função para mostrar detalhes de uma operação específica
+const showTradeDetailModal = (uniqueId) => {
+  // Encontra a operação na lista de histórico
+  const historyArray = Array.isArray(history.value) ? history.value : [];
+  const trade = historyArray.find(item => item.uniqueId === uniqueId);
+  
+  // Se não encontrar dados, mostra uma mensagem de erro
+  if (!trade) {
+    Swal.fire({
+      title: 'Erro',
+      text: 'Detalhes da operação não encontrados.',
+      icon: 'error',
+      confirmButtonColor: '#3085d6',
+    });
+    return;
+  }
+  
+  // Obtém as informações detalhadas dos gales
+  const galeInfos = trade.galeInfos || [];
+  
+  // Se não houver informações detalhadas de gales, tenta usar a própria operação como entrada única
+  const sortedTrades = galeInfos.length > 0 
+    ? [...galeInfos].sort((a, b) => (a.gale || 0) - (b.gale || 0))
+    : [trade];
+  
+  // Calcula o resultado geral da operação
+  const totalPnl = sortedTrades.reduce((sum, trade) => sum + (trade.payload?.pnl || 0), 0);
+  const isOverallWin = totalPnl >= 0;
+  
+  // Extrai informações da primeira operação para o cabeçalho
+  const firstTrade = sortedTrades[0];
+  const pair = firstTrade.payload?.active?.name || 'N/A';
+  const direction = firstTrade.payload?.direction?.toUpperCase() || 'N/A';
+  const directionText = direction === 'CALL' ? 'COMPRA' : 'VENDA';
+  const directionColor = direction === 'CALL' ? '#4ade80' : '#f87171';
+  
+  Swal.fire({
+    title: `<span style='color:#fff;font-weight:bold;font-size:1.25rem;'>Detalhes da Operação</span>`,
+    html: `
+      <div style="color: #cbd5e1; text-align: left; max-height: 500px; overflow-y: auto;">
+        <!-- Cabeçalho com informações gerais -->
+        <div style="background: rgba(30, 41, 59, 0.6); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="display: flex; margin-right: 8px;">
+                <img src="${getCurrencyFlag(pair, 0)}" style="width: 24px; height: 24px; border-radius: 50%;">
+                <img src="${getCurrencyFlag(pair, 1)}" style="width: 24px; height: 24px; border-radius: 50%; margin-left: -8px;">
+              </div>
+              <span style="font-size: 1.1rem; font-weight: bold; color: #fff;">${pair}</span>
+            </div>
+            <span style="font-size: 0.9rem; padding: 4px 10px; border-radius: 8px; background: rgba(${isOverallWin ? '74, 222, 128, 0.2' : '248, 113, 113, 0.2'}); color: ${isOverallWin ? '#4ade80' : '#f87171'};">
+              ${isOverallWin ? 'WIN' : 'LOSS'}
+            </span>
+          </div>
+          
+          <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.85rem;">
+            <div>
+              <span style="color: #94a3b8;">Direção:</span>
+              <span style="color: ${directionColor}; font-weight: bold;"> ${directionText}</span>
+            </div>
+            <div>
+              <span style="color: #94a3b8;">Data:</span>
+              <span> ${formatDateTime(firstTrade.payload?.openTime || firstTrade.createdAt)}</span>
+            </div>
+            <div>
+              <span style="color: #94a3b8;">Resultado Final:</span>
+              <span style="color: ${isOverallWin ? '#4ade80' : '#f87171'}; font-weight: bold;"> ${isOverallWin ? '+' : ''}${formatCurrency(totalPnl)}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Lista de cada entrada (principal + gales) -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          ${sortedTrades.map((trade, index) => {
+            const galeNumber = trade.gale || 0;
+            const pnl = trade.payload?.pnl || 0;
+            const isWin = pnl >= 0;
+            const invest = trade.payload?.invest || 0;
+            const openQuote = trade.payload?.openQuote || 'N/A';
+            const closeQuote = trade.payload?.closeQuote || 'N/A';
+            
+            return `
+              <div style="background: rgba(30, 41, 59, 0.4); padding: 12px; border-radius: 10px; border-left: 3px solid ${isWin ? '#4ade80' : '#f87171'};">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="font-weight: bold; color: #fff;">
+                    ${galeNumber === 0 ? 'Entrada Principal' : `Gale #${galeNumber}`}
+                  </span>
+                  <span style="color: ${isWin ? '#4ade80' : '#f87171'}; font-weight: bold;">
+                    ${isWin ? '+' : ''}${formatCurrency(pnl)}
+                  </span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; font-size: 0.85rem;">
+                  <div>
+                    <div style="color: #94a3b8;">Valor</div>
+                    <div>${formatCurrency(invest)}</div>
+                  </div>
+                  <div>
+                    <div style="color: #94a3b8;">Abertura</div>
+                    <div>${openQuote}</div>
+                  </div>
+                  <div>
+                    <div style="color: #94a3b8;">Fechamento</div>
+                    <div>${closeQuote}</div>
+                  </div>
+                  <div>
+                    <div style="color: #94a3b8;">Horário</div>
+                    <div>${formatDateTime(trade.payload?.openTime || trade.createdAt, 'pt-BR', true)}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `,
+    background: 'linear-gradient(135deg, rgba(26,31,53,0.98) 80%, rgba(99,102,241,0.13) 100%)',
+    confirmButtonColor: '#6366F1',
+    confirmButtonText: `<span style='font-weight:600;'>Fechar</span>`,
+    width: '90vw',
+    customClass: {
+      popup: 'max-w-2xl' // Limita a largura máxima em telas maiores
+    },
+    showCloseButton: true,
+  });
+};
 </script>
 
 <style scoped>

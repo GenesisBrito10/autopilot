@@ -330,6 +330,7 @@ const handleLogin = async (event) => {
 
     if (response.status === 200) {
       showToast(t.value.loginSuccess)
+      localStorage.setItem("user", JSON.stringify(response.data.data));
       setTimeout(() => {
         router.push('/dashboard')
       }, 1000)

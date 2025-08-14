@@ -12,6 +12,7 @@ import 'sweetalert2/dist/sweetalert2.min.css'
 
 const app = createApp(App)
 axios.defaults.baseURL = 'https://backend-automatico.tipolariumbroker.com'
+//axios.defaults.baseURL = 'http://localhost:2003' // Use this for local development
 // Configurar Sweetalert2
 const options = {
     confirmButtonColor: '#2596BE',

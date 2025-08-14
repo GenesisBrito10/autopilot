@@ -51,44 +51,53 @@
                   <p class="text-xs text-gray-500 ml-1">Valor inicial para cada operação</p>
                 </div>
 
-                <!-- Stop Win -->
-                <div class="space-y-2">
-                  <label class="flex items-center gap-2 text-sm font-medium text-gray-300">
-                    <i class="fas fa-trophy text-green-400"></i>
-                    Stop Win
-                  </label>
-                  <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
-                    <input 
-                      v-model.number="settings.stopWin" 
-                      type="number" 
-                      min="1" 
-                      step="1"
-                      class="w-full bg-slate-900/50 border border-slate-700 text-white pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-green-500 focus:bg-slate-900/60 transition-all duration-300"
-                      placeholder="100"
-                    />
-                  </div>
-                  <p class="text-xs text-gray-500 ml-1">Meta de lucro diário</p>
-                </div>
+                <!-- Stop Win and Stop Loss have been removed -->
 
-                <!-- Stop Loss -->
+                <!-- Gale Configuration -->
                 <div class="space-y-2">
                   <label class="flex items-center gap-2 text-sm font-medium text-gray-300">
-                    <i class="fas fa-shield-alt text-red-400"></i>
-                    Stop Loss
+                    <i class="fas fa-redo text-yellow-400"></i>
+                    Quantidade de Gales
                   </label>
-                  <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
-                    <input 
-                      v-model.number="settings.stopLoss" 
-                      type="number" 
-                      min="1" 
-                      step="1"
-                      class="w-full bg-slate-900/50 border border-slate-700 text-white pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-red-500 focus:bg-slate-900/60 transition-all duration-300"
-                      placeholder="100"
-                    />
+                  <div class="grid grid-cols-3 gap-3">
+                    <button 
+                      type="button"
+                      @click="settings.gales = 1"
+                      :class="[
+                        'py-3 rounded-xl font-medium transition-all', 
+                        settings.gales === 1 
+                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' 
+                          : 'bg-slate-900/50 text-gray-400 border border-slate-700 hover:border-yellow-500/30'
+                      ]"
+                    >
+                      1
+                    </button>
+                    <button 
+                      type="button"
+                      @click="settings.gales = 2"
+                      :class="[
+                        'py-3 rounded-xl font-medium transition-all', 
+                        settings.gales === 2 
+                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' 
+                          : 'bg-slate-900/50 text-gray-400 border border-slate-700 hover:border-yellow-500/30'
+                      ]"
+                    >
+                      2
+                    </button>
+                    <button 
+                      type="button"
+                      @click="settings.gales = 3"
+                      :class="[
+                        'py-3 rounded-xl font-medium transition-all', 
+                        settings.gales === 3 
+                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' 
+                          : 'bg-slate-900/50 text-gray-400 border border-slate-700 hover:border-yellow-500/30'
+                      ]"
+                    >
+                      3
+                    </button>
                   </div>
-                  <p class="text-xs text-gray-500 ml-1">Limite máximo de perda diária</p>
+                  <p class="text-xs text-gray-500 ml-1">Número de tentativas adicionais em caso de perda (Gale é uma estratégia de recuperação que dobra o valor após uma operação perdida)</p>
                 </div>
 
                 <!-- Save Button -->
@@ -119,12 +128,8 @@
                   <span class="text-white font-medium">R$ {{ settings.entryValue }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                  <span class="text-gray-400 text-sm">Stop Win</span>
-                  <span class="text-green-400 font-medium">R$ {{ settings.stopWin }}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-gray-400 text-sm">Stop Loss</span>
-                  <span class="text-red-400 font-medium">R$ {{ settings.stopLoss }}</span>
+                  <span class="text-gray-400 text-sm">Gales</span>
+                  <span class="text-yellow-400 font-medium">{{ settings.gales }}</span>
                 </div>
               </div>
             </div>
@@ -175,8 +180,7 @@ import Swal from 'sweetalert2'
 
 const defaultSettings = {
   entryValue: 10,
-  stopWin: 100,
-  stopLoss: 100,
+  gales: 2,
   martingale: false,
   autoTrade: false,
   soundNotifications: true

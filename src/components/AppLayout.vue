@@ -194,7 +194,19 @@ import axios from 'axios'
 import Swal from 'sweetalert2'
 const router = useRouter()
 const isSidebarOpen = ref(false)
-const userDisplayName = ref(localStorage.getItem('userName') || 'Usuário')
+
+// Define props
+const props = defineProps({
+  userName: {
+    type: String,
+    default: ''
+  }
+})
+
+// Use prop value if provided, otherwise fallback to localStorage
+const userDisplayName = computed(() => {
+  return props.userName || localStorage.getItem('userName') || 'Usuário'
+})
 
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value

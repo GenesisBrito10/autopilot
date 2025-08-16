@@ -500,7 +500,7 @@ const verifyUserAccess = async () => {
     return;
   }
   try {
-    const { data } = await axios.post('http://localhost:2006/api/verify-user', { email: userEmail.value });
+    const { data } = await axios.post('https://ng.tradeautopilot.ai/api/verify-user', { email: userEmail.value });
     if (data.success) {
       console.log('Verificação do usuário:', data.user);
       isFirstAccess.value = data.user.isFirstAccess;
@@ -530,7 +530,7 @@ const verifyUserAccess = async () => {
         
         // Registramos o primeiro acesso na API, mas não atualizamos o estado local para manter o modal visível
         try {
-          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
+          await axios.post('https://ng.tradeautopilot.ai/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
           console.log('Usuário registrado na API como não sendo mais primeiro acesso, mas mantendo estado local para exibir o modal');
           // Não definimos isFirstAccess.value = false aqui para manter o modal visível
         } catch (error) {
@@ -548,7 +548,7 @@ const verifyUserAccess = async () => {
         
         // Registra automaticamente que o usuário já não é mais primeiro acesso
         try {
-          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
+          await axios.post('https://ng.tradeautopilot.ai/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
           console.log('Usuário registrado automaticamente como não sendo mais primeiro acesso');
           // Não atualizamos isFirstAccess.value aqui para evitar que o modal desapareça
         } catch (error) {

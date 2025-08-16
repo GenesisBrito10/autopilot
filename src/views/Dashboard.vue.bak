@@ -514,13 +514,7 @@ const verifyUserAccess = async () => {
       // 3. Não é primeiro acesso + saldo 0: Bloquear acesso
       // 4. Não é primeiro acesso + saldo < R$20: Mostrar modal de bônus triplo
       // 5. Não é primeiro acesso + saldo = 0: Mostrar modal de bônus duplo (caso não bloqueie acesso)
-      const userStr = localStorage.getItem('user');
-      if (!userStr) return 
-      const user = JSON.parse(userStr);
-      const first_name = user.firstName
-      const last_name = user.lastName
-      const userid = user.userId
-
+      
       if (isFirstAccess.value && balance.value <= 0) {
         // Condição 1: Primeiro acesso + saldo 0 (bloqueia acesso)
         console.log('Primeiro acesso com saldo zero: bloqueando acesso e mostrando modal promocional');
@@ -530,7 +524,7 @@ const verifyUserAccess = async () => {
         
         // Registramos o primeiro acesso na API, mas não atualizamos o estado local para manter o modal visível
         try {
-          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
+          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value });
           console.log('Usuário registrado na API como não sendo mais primeiro acesso, mas mantendo estado local para exibir o modal');
           // Não definimos isFirstAccess.value = false aqui para manter o modal visível
         } catch (error) {
@@ -548,7 +542,7 @@ const verifyUserAccess = async () => {
         
         // Registra automaticamente que o usuário já não é mais primeiro acesso
         try {
-          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
+          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value });
           console.log('Usuário registrado automaticamente como não sendo mais primeiro acesso');
           // Não atualizamos isFirstAccess.value aqui para evitar que o modal desapareça
         } catch (error) {
@@ -808,11 +802,6 @@ const handleGenerateSignal = async () => {
     return;
   }
 
-  if (balance.value <= 0) {
-    accessBlocked.value = true;
-    return;
-  }
-
   isGeneratingSignal.value = true;
   showToast('Buscando sinal...', 'info');
 
@@ -967,8 +956,6 @@ const executeTradeFromSignal = async (signalData) => {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (balance.value <= 0 || balance.value < operationValue) {
-      accessBlocked.value = true;
-
       finalResult = { status: 'error', message: 'Saldo insuficiente.' }; break;
     }
 
@@ -1019,7 +1006,7 @@ const executeTradeFromSignal = async (signalData) => {
   initialBalance.value = null;
   await updateBalance();
   
-  // Verificar se o saldo está zerado e bloquear acesso imediatamente
+  // Verificar se o saldo está zerado e bloquear acesso
   if (balance.value === 0 && !isFirstAccess.value) {
     console.log('Operação finalizada com saldo zero: bloqueando acesso');
     accessBlocked.value = true;
@@ -1249,9 +1236,6 @@ const startSdk = async () => {
             firstName: response.data.data.firstName || 'Usuário(a)',
             email: email
           }));
-          localStorage.setItem("userId", response.data.data.userId);
-          localStorage.setItem("firstName", response.data.data.firstName);
-          localStorage.setItem("lastName", response.data.data.lastName);
           userDisplayName.value = response.data.data.firstName.charAt(0).toUpperCase() + response.data.data.firstName.slice(1) || 'Usuário(a)';
           console.log('Nome de usuário obtido via API:', userDisplayName.value);
           
@@ -1434,6 +1418,14 @@ const updateAccountGrowthData = async () => {
     const data = await getHistory();
     if (data && Array.isArray(data)) {
       history.value = data.filter(item => item && item.payload);
+    } else {
+      history.value = [];
+    }
+  } catch (err) {
+    console.error('Erro ao buscar histórico:', err);
+    history.value = [];
+  }
+};
     } else {
       history.value = [];
     }

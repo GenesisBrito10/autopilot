@@ -331,6 +331,17 @@ const handleLogin = async (event) => {
     if (response.status === 200) {
       showToast(t.value.loginSuccess)
       localStorage.setItem("user", JSON.stringify(response.data.data));
+      localStorage.setItem("userId", response.data.data.userId);
+      localStorage.setItem("firstName", response.data.data.firstName);
+      localStorage.setItem("lastName", response.data.data.lastName);
+      // Notificar outros componentes sobre a atualização do nome de usuário
+      if (response.data.data && response.data.data.firstName) {
+        const userName = response.data.data.firstName.charAt(0).toUpperCase() + response.data.data.firstName.slice(1);
+        window.dispatchEvent(new CustomEvent('app:user-name-updated', {
+          detail: { name: userName }
+        }));
+      }
+      
       setTimeout(() => {
         router.push('/dashboard')
       }, 1000)

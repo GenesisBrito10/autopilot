@@ -194,19 +194,20 @@ import axios from 'axios'
 import Swal from 'sweetalert2'
 const router = useRouter()
 const isSidebarOpen = ref(false)
+const userDisplayName = ref('Usuário')
 
-// Define props
-const props = defineProps({
-  userName: {
-    type: String,
-    default: ''
+// Tentar obter o nome do usuário do objeto 'user' no localStorage
+const userStr = localStorage.getItem('user')
+if (userStr) {
+  try {
+    const user = JSON.parse(userStr)
+    if (user && user.firstName) {
+      userDisplayName.value = user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1)
+    }
+  } catch (error) {
+    console.error('Erro ao analisar objeto de usuário:', error)
   }
-})
-
-// Use prop value if provided, otherwise fallback to localStorage
-const userDisplayName = computed(() => {
-  return props.userName || localStorage.getItem('userName') || 'Usuário'
-})
+}
 
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
@@ -302,6 +303,26 @@ onMounted(() => {
   window.addEventListener('bravus:operation-status', updateBotStatus)
   window.dispatchEvent(new CustomEvent('bravus:request-operation-status'))
   window.addEventListener('app:language-changed', updateLanguageFromEvent)
+  
+  // Ouvir atualizações de nome de usuário
+  window.addEventListener('app:user-name-updated', (event) => {
+    if (event.detail && event.detail.name) {
+      userDisplayName.value = event.detail.name;
+    }
+  });
+
+  // Tentar obter o nome do usuário novamente, caso tenha sido atualizado em outro componente
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      if (user && user.firstName) {
+        userDisplayName.value = user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1);
+      }
+    } catch (error) {
+      console.error('Erro ao analisar objeto de usuário:', error);
+    }
+  }
 
   // Bloqueio global de navegação se o bot estiver ativo
   removeRouterGuard = router.beforeEach((to, from, next) => {
@@ -329,6 +350,11 @@ onUnmounted(() => {
   window.removeEventListener('bravus:operation-status', updateOperationStatus)
   window.removeEventListener('bravus:operation-status', updateBotStatus)
   window.removeEventListener('app:language-changed', updateLanguageFromEvent)
+  window.removeEventListener('app:user-name-updated', (event) => {
+    if (event.detail && event.detail.name) {
+      userDisplayName.value = event.detail.name;
+    }
+  })
   if (removeRouterGuard) removeRouterGuard()
 })
 </script>

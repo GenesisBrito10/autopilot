@@ -4,8 +4,8 @@
     
     <div id="profit-notifications-container" class="fixed bottom-4 left-4 z-50 space-y-2 max-w-md"></div>
     
-    <!-- Modal de acesso bloqueado (sem saldo) - tem prioridade sobre outros modais quando o saldo é zero -->
-    <div v-if="accessBlocked && (!isFirstAccess || (isFirstAccess && balance <= 0 && !showFirstAccessModal))" class="fixed inset-0 bg-slate-900/95 z-[101] flex items-center justify-center">
+    <!-- Modal de acesso bloqueado (sem saldo) - aparece após clicar em depositar no modal de primeiro acesso -->
+    <div v-if="accessBlocked && (!isFirstAccess || (isFirstAccess && balance <= 0 && !showFirstAccessModal))" class="fixed inset-0 bg-slate-900/95 z-[100] flex items-center justify-center">
       <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4">
         <div class="text-center">
           <i class="fas fa-lock text-red-400 text-4xl mb-4"></i>
@@ -66,102 +66,6 @@
             class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
             <i class="fas fa-wallet"></i>
             APROVEITAR OFERTA
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Modal de saldo abaixo de R$20 (Bônus Triplo) -->
-    <div v-if="showBonusTripleModal && !showBonusRedemptionTripleModal && !isFirstAccess && !isTradeInProgress && !isWaitingForEntryTime && balance > 0 && balance < LOW_BALANCE_THRESHOLD" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
-      <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4 relative">
-        <button @click="showBonusTripleModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">
-          <i class="fas fa-times"></i>
-        </button>
-        <div class="text-center">
-          <i class="fas fa-gift text-yellow-400 text-4xl mb-4"></i>
-          <h3 class="text-xl font-bold text-white mb-2">Oferta Especial!</h3>
-          
-          <div>
-            <p class="text-blue-300 text-lg font-semibold mb-4">Ei, sua banca está quase acabando, que tal um bônus para TRIPLICAR seu depósito?!</p>
-          </div>
-          
-          <button @click="showBonusTripleRedemption" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
-            <i class="fas fa-gift"></i>
-            RESGATAR BÔNUS
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Modal de Resgate de Bônus Triplo -->
-    <div v-if="showBonusRedemptionTripleModal && !isFirstAccess && !isTradeInProgress && !isWaitingForEntryTime && balance > 0 && balance < LOW_BALANCE_THRESHOLD" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
-      <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4 relative">
-        <div class="text-center">
-          <i class="fas fa-check-circle text-green-400 text-4xl mb-4"></i>
-          <h3 class="text-xl font-bold text-white mb-2">Bônus 3X liberado!</h3>
-          
-          <div>
-            <p class="text-white mb-4">Use o cupom: <span class="text-yellow-400 font-bold">SUPER200</span></p>
-            
-            <div class="mb-4 p-3 bg-slate-800/50 rounded-xl">
-              <p class="text-gray-300 text-sm mb-1">Oferta expira em:</p>
-              <p class="text-xl font-bold text-white">{{ countdownTime }}</p>
-            </div>
-          </div>
-          
-          <button @click="redirectToDeposit" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
-            <i class="fas fa-wallet"></i>
-            DEPOSITAR AGORA
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Modal de saldo zerado (Bônus Duplo) - Só aparece se o acesso não estiver bloqueado -->
-    <div v-if="showBonusDoubleModal && !showBonusRedemptionDoubleModal && !isFirstAccess && !accessBlocked && !isTradeInProgress && !isWaitingForEntryTime && balance === 0" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
-      <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4 relative">
-        <button @click="showBonusDoubleModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">
-          <i class="fas fa-times"></i>
-        </button>
-        <div class="text-center">
-          <i class="fas fa-gift text-yellow-400 text-4xl mb-4"></i>
-          <h3 class="text-xl font-bold text-white mb-2">Oferta Exclusiva!</h3>
-          
-          <div>
-            <p class="text-blue-300 text-lg font-semibold mb-4">Você foi um dos escolhidos para ganhar depósito em DOBRO!</p>
-          </div>
-          
-          <button @click="showBonusDoubleRedemption" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
-            <i class="fas fa-gift"></i>
-            RESGATAR BÔNUS
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Modal de Resgate de Bônus Duplo -->
-    <div v-if="showBonusRedemptionDoubleModal && !isFirstAccess && !accessBlocked && !isTradeInProgress && !isWaitingForEntryTime && balance === 0" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
-      <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4 relative">
-        <div class="text-center">
-          <i class="fas fa-check-circle text-green-400 text-4xl mb-4"></i>
-          <h3 class="text-xl font-bold text-white mb-2">Bônus 2X liberado!</h3>
-          
-          <div>
-            <p class="text-white mb-4">Use o CUPOM: <span class="text-yellow-400 font-bold">SUPER100</span> para dobrar o valor depositado e liberar a IA.</p>
-            
-            <div class="mb-4 p-3 bg-slate-800/50 rounded-xl">
-              <p class="text-gray-300 text-sm mb-1">Oferta expira em:</p>
-              <p class="text-xl font-bold text-white">{{ countdownTime }}</p>
-            </div>
-          </div>
-          
-          <button @click="redirectToDeposit" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
-            <i class="fas fa-wallet"></i>
-            DEPOSITAR AGORA
           </button>
         </div>
       </div>
@@ -408,9 +312,10 @@ const router = useRouter()
 // State variables
 const userDisplayName = ref('Usuário(a)')
 const balance = ref(0)
-const accountType = ref('demo')
+const accountType = ref('real')
 const isGeneratingSignal = ref(false)
 const history = ref([])
+const GALES = ref(2)
 const initialBalance = ref(null)
 
 // --- Variáveis para verificação de acesso e saldo ---
@@ -421,16 +326,6 @@ const showFirstAccessModal = ref(true) // Controla a exibição do modal de prim
 const checkingBalanceInterval = ref(null)
 const userEmail = ref(localStorage.getItem('userEmail') || '')
 let fakeNotificationInterval = null;
-
-// --- Variáveis para novos modais de bônus ---
-const showBonusTripleModal = ref(false);
-const showBonusRedemptionTripleModal = ref(false);
-const showBonusDoubleModal = ref(false);
-const showBonusRedemptionDoubleModal = ref(false);
-const countdownTime = ref('30:00');
-let bonusCountdownInterval = null;
-let lastBalanceCheck = 0; // Timestamp da última verificação de saldo
-const LOW_BALANCE_THRESHOLD = 20; // Limiar para exibir o modal de bônus triplo (R$20)
 
 // --- Arrays de notificações ---
 const profitNotifications = [
@@ -449,7 +344,7 @@ const activationNotifications = [
 // Trading variables
 const selectedAsset = ref('EURUSD')
 const selectedTime = ref(1)
-const defaultUserSettings = { entryValue: 10 }
+const defaultUserSettings = { entryValue: 10, stopWin: 100, stopLoss: 100 }
 const userSettings = ref({ ...defaultUserSettings })
 const COLLECTION_NAME = 'autopilot'
 const availableAssets = ref([]);
@@ -505,22 +400,11 @@ const verifyUserAccess = async () => {
       console.log('Verificação do usuário:', data.user);
       isFirstAccess.value = data.user.isFirstAccess;
 
-      // Verifica o saldo para determinar o modal a ser exibido
-      await updateBalance();
-      
-      // Implementação das condições para exibição dos modais:
+      // Implmentação das três condições:
       // 1. Primeiro acesso + saldo 0: Mostrar modal e bloquear acesso
       // 2. Primeiro acesso + saldo > 0: Mostrar modal promocional que pode ser fechado
       // 3. Não é primeiro acesso + saldo 0: Bloquear acesso
-      // 4. Não é primeiro acesso + saldo < R$20: Mostrar modal de bônus triplo
-      // 5. Não é primeiro acesso + saldo = 0: Mostrar modal de bônus duplo (caso não bloqueie acesso)
-      const userStr = localStorage.getItem('user');
-      if (!userStr) return 
-      const user = JSON.parse(userStr);
-      const first_name = user.firstName
-      const last_name = user.lastName
-      const userid = user.userId
-
+      
       if (isFirstAccess.value && balance.value <= 0) {
         // Condição 1: Primeiro acesso + saldo 0 (bloqueia acesso)
         console.log('Primeiro acesso com saldo zero: bloqueando acesso e mostrando modal promocional');
@@ -530,7 +414,7 @@ const verifyUserAccess = async () => {
         
         // Registramos o primeiro acesso na API, mas não atualizamos o estado local para manter o modal visível
         try {
-          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
+          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value });
           console.log('Usuário registrado na API como não sendo mais primeiro acesso, mas mantendo estado local para exibir o modal');
           // Não definimos isFirstAccess.value = false aqui para manter o modal visível
         } catch (error) {
@@ -548,7 +432,7 @@ const verifyUserAccess = async () => {
         
         // Registra automaticamente que o usuário já não é mais primeiro acesso
         try {
-          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
+          await axios.post('http://localhost:2006/api/register-first-access', { email: userEmail.value });
           console.log('Usuário registrado automaticamente como não sendo mais primeiro acesso');
           // Não atualizamos isFirstAccess.value aqui para evitar que o modal desapareça
         } catch (error) {
@@ -560,27 +444,10 @@ const verifyUserAccess = async () => {
         accessBlocked.value = true; // Bloqueia o acesso
         showBonusModal.value = false; // Não mostra nenhum modal promocional
         showFirstAccessModal.value = false; // Não mostra o modal de primeiro acesso
-        
-        // Verifica se deve mostrar o modal de bônus duplo (se não estiver bloqueado)
-        if (!accessBlocked.value && !isTradeInProgress.value && !isWaitingForEntryTime.value) {
-          showBonusDoubleModal.value = true;
-        }
-        
         startCheckingBalance();
         startFakeNotifications();
-      } else if (!isFirstAccess.value && balance.value > 0 && balance.value < LOW_BALANCE_THRESHOLD) {
-        // Condição 4: Não é primeiro acesso + saldo baixo (menos de R$20)
-        console.log('Saldo baixo: exibindo modal de bônus triplo');
-        accessBlocked.value = false;
-        showBonusModal.value = false;
-        showFirstAccessModal.value = false;
-        
-        // Mostra o modal de bônus triplo (se não estiver em operação)
-        if (!isTradeInProgress.value && !isWaitingForEntryTime.value) {
-          showBonusTripleModal.value = true;
-        }
       } else {
-        // Caso padrão: Não é primeiro acesso + saldo positivo adequado
+        // Caso padrão: Não é primeiro acesso + saldo positivo
         console.log('Acesso liberado: não é primeiro acesso e tem saldo positivo');
         accessBlocked.value = false;
         showBonusModal.value = false;
@@ -595,75 +462,15 @@ const verifyUserAccess = async () => {
   }
 };
 
-// --- Funções para lidar com os novos modais de bônus ---
-
-// Formata o tempo do contador regressivo
-const formatCountdownTime = (totalSeconds) => {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  
-  return `${hours > 0 ? `${String(hours).padStart(2, '0')}:` : ''}${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-};
-
-// Inicia o contador regressivo de 30 minutos para o bônus
-const startBonusCountdown = () => {
-  // Limpa o intervalo anterior se existir
-  if (bonusCountdownInterval) clearInterval(bonusCountdownInterval);
-  
-  // Define o tempo inicial (30 minutos = 1800 segundos)
-  let timeLeft = 1800;
-  
-  // Atualiza o tempo formatado
-  countdownTime.value = formatCountdownTime(timeLeft);
-  
-  // Cria um novo intervalo
-  bonusCountdownInterval = setInterval(() => {
-    timeLeft--;
-    
-    if (timeLeft <= 0) {
-      // Tempo acabou, limpa o intervalo e fecha os modais
-      clearInterval(bonusCountdownInterval);
-      showBonusRedemptionTripleModal.value = false;
-      showBonusRedemptionDoubleModal.value = false;
-    } else {
-      // Atualiza o tempo formatado
-      countdownTime.value = formatCountdownTime(timeLeft);
-    }
-  }, 1000);
-};
-
-// Função para exibir o modal de resgate do bônus triplo
-const showBonusTripleRedemption = () => {
-  showBonusTripleModal.value = false;
-  showBonusRedemptionTripleModal.value = true;
-  startBonusCountdown();
-};
-
-// Função para exibir o modal de resgate do bônus duplo
-const showBonusDoubleRedemption = () => {
-  showBonusDoubleModal.value = false;
-  showBonusRedemptionDoubleModal.value = true;
-  startBonusCountdown();
-};
-
 const redirectToDeposit = async () => {
-  // Fechar os modais de bônus se estiverem abertos
+  // Fechar o modal de bônus se estiver aberto
   if (showBonusModal.value) {
     showBonusModal.value = false;
-  }
-  
-  if (showBonusRedemptionTripleModal.value) {
-    showBonusRedemptionTripleModal.value = false;
-    clearInterval(bonusCountdownInterval);
-  }
-  
-  if (showBonusRedemptionDoubleModal.value) {
-    showBonusRedemptionDoubleModal.value = false;
-    clearInterval(bonusCountdownInterval);
-  }
-
-  if (isFirstAccess.value && balance.value <= 0) {
+    
+    // Se for um modal de bônus (não o primeiro acesso com saldo zero), 
+    // podemos atualizar o estado de primeiro acesso
+    isFirstAccess.value = false;
+  } else if (isFirstAccess.value && balance.value <= 0) {
     // Quando for o modal de primeiro acesso com saldo zero,
     // ocultamos o modal de primeiro acesso e mostramos a animação de verificação
     showFirstAccessModal.value = false;
@@ -808,11 +615,6 @@ const handleGenerateSignal = async () => {
     return;
   }
 
-  if (balance.value <= 0) {
-    accessBlocked.value = true;
-    return;
-  }
-
   isGeneratingSignal.value = true;
   showToast('Buscando sinal...', 'info');
 
@@ -826,9 +628,7 @@ const handleGenerateSignal = async () => {
     }
 
     const signalResponse = await generateSignal(pair, period, candlesResponse.results);
-    const response = signalResponse.data;
-    console.log("Sinal gerado:", signalResponse.data.trade_action);
-    if (!response || !response.data || !response.data.trade_action || !response.data.entry_time) {
+    if (!signalResponse || !signalResponse.data || !signalResponse.data.trade_action || !signalResponse.data.entry_time) {
       throw new Error('Sinal não encontrado, tente novamente.');
     }
     
@@ -837,7 +637,7 @@ const handleGenerateSignal = async () => {
     const data = {
       pair,
       timeframe: period * 60,
-      ...response.data
+      ...signalResponse.data
     };
     showSignalConfirmationPopup(data);
 
@@ -957,18 +757,23 @@ const executeTradeFromSignal = async (signalData) => {
   await updateBalance();
   initialBalance.value = balance.value;
 
-  // Obter a configuração de gales do botSettings
-  const botSettings = JSON.parse(localStorage.getItem('botSettings') || '{"gales": 2}');
-  const maxAttempts = botSettings.gales + 1;
-  
+  const maxAttempts = GALES.value + 1;
   let operationValue = userSettings.value.entryValue;
   let finalResult = { status: 'error', message: 'Operação não finalizada.' };
   const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (initialBalance.value !== null) {
+      const stopLoss = initialBalance.value - userSettings.value.stopLoss;
+      const stopWin = initialBalance.value + userSettings.value.stopWin;
+      if (balance.value <= stopLoss) {
+        finalResult = { status: 'error', message: 'Stop Loss atingido!' }; break;
+      }
+      if (balance.value >= stopWin) {
+        finalResult = { status: 'success', message: 'Stop Win atingido!' }; break;
+      }
+    }
     if (balance.value <= 0 || balance.value < operationValue) {
-      accessBlocked.value = true;
-
       finalResult = { status: 'error', message: 'Saldo insuficiente.' }; break;
     }
 
@@ -1014,28 +819,9 @@ const executeTradeFromSignal = async (signalData) => {
   localStorage.removeItem('tradeInProgress');
   localStorage.removeItem('tradeInfo');
 
-  // Atualiza o saldo e mostra os modais se necessário
+  await updateBalance();
   await updateAccountGrowthData();
   initialBalance.value = null;
-  await updateBalance();
-  
-  // Verificar se o saldo está zerado e bloquear acesso imediatamente
-  if (balance.value === 0 && !isFirstAccess.value) {
-    console.log('Operação finalizada com saldo zero: bloqueando acesso');
-    accessBlocked.value = true;
-    showBonusDoubleModal.value = true;
-    showBonusRedemptionDoubleModal.value = false;
-    showBonusTripleModal.value = false;
-    showBonusRedemptionTripleModal.value = false;
-  } 
-  // Se o saldo ainda é positivo mas está baixo
-  else if (balance.value > 0 && balance.value < LOW_BALANCE_THRESHOLD && !isFirstAccess.value) {
-    console.log('Operação finalizada com saldo baixo: exibindo modal de bônus triplo');
-    showBonusTripleModal.value = true;
-    showBonusRedemptionTripleModal.value = false;
-    showBonusDoubleModal.value = false;
-    showBonusRedemptionDoubleModal.value = false;
-  }
 };
 
 const transactionStats = computed(() => {
@@ -1058,18 +844,8 @@ const roiStats = computed(() => {
 });
 
 const formatCurrency = (value) => {
-  if (value === null || value === undefined) value = 0;
-  if (typeof value !== 'number') value = Number(value) || 0;
-  
-  // Garantir que o valor tem no máximo duas casas decimais
-  value = Math.round(value * 100) / 100;
-  
-  return new Intl.NumberFormat('pt-BR', { 
-    style: 'currency', 
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(value);
+  if (typeof value !== 'number') value = 0
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 };
 
 const switchAccount = async () => {
@@ -1249,9 +1025,6 @@ const startSdk = async () => {
             firstName: response.data.data.firstName || 'Usuário(a)',
             email: email
           }));
-          localStorage.setItem("userId", response.data.data.userId);
-          localStorage.setItem("firstName", response.data.data.firstName);
-          localStorage.setItem("lastName", response.data.data.lastName);
           userDisplayName.value = response.data.data.firstName.charAt(0).toUpperCase() + response.data.data.firstName.slice(1) || 'Usuário(a)';
           console.log('Nome de usuário obtido via API:', userDisplayName.value);
           
@@ -1361,71 +1134,9 @@ const updateBalance = async () => {
   try {
     const data = await getAccountBalance();
     const account = data.balances.find(b => b.type === accountType.value);
-    const previousBalance = balance.value;
     balance.value = account ? account.amount : 0;
-    
-    // Quando o saldo chega a zero e não é primeiro acesso, bloqueia o acesso imediatamente
-    if (balance.value === 0 && !isFirstAccess.value) {
-      // Se não for primeiro acesso e saldo for zero, bloqueia o acesso
-      console.log('Saldo zero detectado: bloqueando acesso ao dashboard');
-      accessBlocked.value = true;
-      
-      // Garante que os modais de bônus não são exibidos ao mesmo tempo
-      showBonusTripleModal.value = false;
-      showBonusRedemptionTripleModal.value = false;
-      
-      return balance.value;
-    } 
-    // Se o saldo for positivo, libera o acesso
-    else if (balance.value > 0) {
-      accessBlocked.value = false;
-    }
-    
-    // Verifica se é possível mostrar um modal de bônus neste momento
-    // Não mostra modais de bônus durante operações em andamento ou aguardando horário de entrada
-    const canShowBonusModal = !isFirstAccess.value && 
-                            !isTradeInProgress.value && 
-                            !isWaitingForEntryTime.value;
-    
-    // Verifica o saldo diretamente para determinar qual modal mostrar
-    if (canShowBonusModal) {
-      if (balance.value === 0) {
-        // Quando já está com acesso bloqueado, não mostra o modal de bônus duplo
-        if (!accessBlocked.value) {
-          // Garante que o modal de bônus triplo não está visível
-          showBonusTripleModal.value = false;
-          showBonusRedemptionTripleModal.value = false;
-          
-          // Só mostra o modal se não estiver já aberto
-          if (!showBonusDoubleModal.value && !showBonusRedemptionDoubleModal.value) {
-            console.log('Saldo zero detectado: exibindo modal de bônus duplo');
-            showBonusDoubleModal.value = true;
-          }
-        }
-      } 
-      // Se o saldo for baixo (menor que R$20) mas ainda positivo, mostra o modal de bônus triplo
-      else if (balance.value > 0 && balance.value < LOW_BALANCE_THRESHOLD) {
-        // Garante que o modal de bônus duplo não está visível
-        showBonusDoubleModal.value = false;
-        showBonusRedemptionDoubleModal.value = false;
-        
-        // Só mostra o modal se não estiver já aberto
-        if (!showBonusTripleModal.value && !showBonusRedemptionTripleModal.value) {
-          console.log('Saldo baixo detectado: exibindo modal de bônus triplo');
-          showBonusTripleModal.value = true;
-        }
-      }
-    }
-    
-    return balance.value;
   } catch (e) { 
-    console.error('Erro ao atualizar saldo:', e);
-    balance.value = 0;
-    // Se ocorrer erro e o saldo ficar zerado, bloqueia o acesso
-    if (!isFirstAccess.value) {
-      accessBlocked.value = true;
-    }
-    return 0;
+    balance.value = 0; 
   }
 };
 
@@ -1445,58 +1156,43 @@ const updateAccountGrowthData = async () => {
 
 function loadUserSettings() {
   const saved = localStorage.getItem('botSettings');
-  if (saved) {
-    const botSettings = JSON.parse(saved);
-    userSettings.value = { 
-      entryValue: botSettings.entryValue || defaultUserSettings.entryValue
-    };
-  }
+  if (saved) userSettings.value = JSON.parse(saved);
 }
 
 
 // --- Lifecycle Hooks ---
 onMounted(async () => {
-  console.log('Dashboard montado, iniciando configuração...');
-  
   loadUserSettings();
   await startSdk();
   
   // Atualiza o saldo primeiro
   await updateBalance();
-  console.log('Saldo inicial:', formatCurrency(balance.value));
+  console.log('Saldo inicial:', balance.value);
   
   // Depois verifica o acesso do usuário, que usa o saldo para determinar o estado
   await verifyUserAccess();
   
   await updateAccountGrowthData();
-  console.log('Histórico de transações carregado:', history.value.length, 'operações');
 
   try {
     const assets = await getAvailableAssets();
     if(Array.isArray(assets) && assets.length > 0) {
         availableAssets.value = assets;
         selectedAsset.value = assets[0].name;
-        console.log('Ativos disponíveis carregados:', assets.length);
     }
   } catch (e) { console.error("Não foi possível carregar os ativos", e) }
 
   await updateChart();
   chartUpdateInterval = setInterval(updateChart, 15000);
-  console.log('Dashboard configurado com sucesso');
 });
 
 onUnmounted(() => {
   if (chartUpdateInterval) clearInterval(chartUpdateInterval);
   stopCheckingBalance();
   stopFakeNotifications();
-  
-  // Limpa o intervalo do contador regressivo de bônus
-  if (bonusCountdownInterval) clearInterval(bonusCountdownInterval);
 });
 
-watch(balance, (newBalance, oldBalance) => {
-  console.log(`Saldo alterado: ${formatCurrency(oldBalance)} -> ${formatCurrency(newBalance)}`);
-  
+watch(balance, (newBalance) => {
   // Se tiver saldo positivo e o acesso estiver bloqueado, libera
   if (newBalance > 0 && accessBlocked.value) {
     console.log('Saldo positivo detectado, liberando acesso bloqueado');
@@ -1513,34 +1209,6 @@ watch(balance, (newBalance, oldBalance) => {
       color: '#fff',
       confirmButtonColor: '#3B82F6',
     });
-  }
-  
-  // Se o saldo ficou zerado e não é primeiro acesso, bloqueia o acesso
-  if (newBalance === 0 && !isFirstAccess.value && oldBalance > 0) {
-    console.log('Saldo zerado detectado, bloqueando acesso');
-    accessBlocked.value = true;
-  }
-  
-  // Verificar a necessidade de mostrar modais de bônus quando o saldo muda
-  // mas não durante operações ou no primeiro acesso
-  if (!isTradeInProgress.value && !isWaitingForEntryTime.value && !isFirstAccess.value) {
-    // Se o saldo caiu para zero, mostrar o modal de bônus duplo
-    if (oldBalance > 0 && newBalance === 0) {
-      console.log('Saldo zero detectado no watch: exibindo modal de bônus duplo');
-      showBonusDoubleModal.value = true;
-      showBonusTripleModal.value = false;
-      showBonusRedemptionTripleModal.value = false;
-      showBonusRedemptionDoubleModal.value = false;
-    }
-    // Se o saldo ficou baixo (menos de R$20), mostrar o modal de bônus triplo
-    else if (newBalance > 0 && newBalance < LOW_BALANCE_THRESHOLD && 
-            (oldBalance >= LOW_BALANCE_THRESHOLD || oldBalance === 0)) {
-      console.log('Saldo baixo detectado no watch: exibindo modal de bônus triplo');
-      showBonusTripleModal.value = true;
-      showBonusDoubleModal.value = false;
-      showBonusRedemptionDoubleModal.value = false;
-      showBonusRedemptionTripleModal.value = false;
-    }
   }
 });
 

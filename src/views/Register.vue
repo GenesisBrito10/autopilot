@@ -419,6 +419,17 @@ const handleRegister = async (event) => {
 
     if (response.status === 200) {
       showToast(t.value.loginSuccess)
+      // Armazenar os dados do usuário no localStorage
+      localStorage.setItem("user", JSON.stringify(response.data.data));
+      
+      // Notificar outros componentes sobre a atualização do nome de usuário
+      if (response.data.data && response.data.data.firstName) {
+        const userName = response.data.data.firstName.charAt(0).toUpperCase() + response.data.data.firstName.slice(1);
+        window.dispatchEvent(new CustomEvent('app:user-name-updated', {
+          detail: { name: userName }
+        }));
+      }
+      
       setTimeout(() => {
         router.push('/dashboard')
       }, 1000)

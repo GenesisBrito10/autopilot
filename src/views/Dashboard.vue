@@ -408,7 +408,7 @@ const router = useRouter()
 // State variables
 const userDisplayName = ref('Usuário(a)')
 const balance = ref(0)
-const accountType = ref('demo')
+const accountType = ref('real')
 const isGeneratingSignal = ref(false)
 const history = ref([])
 const initialBalance = ref(null)

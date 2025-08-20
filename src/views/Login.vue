@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+  <div class="min-h-screen flex items-center justify-center" :style="`background: linear-gradient(to bottom right, ${backgroundColor}, color-mix(in srgb, ${backgroundColor} 70%, ${primaryColor} 30%), ${backgroundColor})`">
     <!-- Mobile Layout -->
     <div class="lg:hidden w-full max-w-md mx-auto p-6">
       <!-- Mobile Header -->
@@ -13,20 +13,20 @@
         <!-- Mobile Features (compact) -->
         <div class="flex justify-center gap-8 mb-8">
           <div class="text-center">
-            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <i class="fas fa-robot text-blue-400"></i>
+                          <div class="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-2" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-robot" :style="`color: ${primaryColor}`"></i>
             </div>
             <span class="text-xs text-gray-400">IA Avançada</span>
           </div>
           <div class="text-center">
-            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <i class="fas fa-chart-bar text-blue-400"></i>
+                          <div class="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-2" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-chart-bar" :style="`color: ${primaryColor}`"></i>
             </div>
             <span class="text-xs text-gray-400">Análises</span>
           </div>
           <div class="text-center">
-            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <i class="fas fa-bullseye text-blue-400"></i>
+                          <div class="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-2" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-bullseye" :style="`color: ${primaryColor}`"></i>
             </div>
             <span class="text-xs text-gray-400">Precisão</span>
           </div>
@@ -34,21 +34,21 @@
       </div>
       
       <!-- Mobile Form -->
-      <div class="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-800">
+      <div class="backdrop-blur-sm rounded-2xl p-6 border border-white/20" :style="`background: color-mix(in srgb, ${backgroundColor} 50%, transparent)`">
         <h2 class="text-xl font-bold text-white mb-6 text-center">Fazer login</h2>
         
         <form @submit.prevent="handleLogin" class="space-y-4">
           <!-- Email Field -->
           <div>
             <label class="flex items-center text-gray-400 text-xs font-medium mb-2 uppercase tracking-wider">
-              <i class="fas fa-envelope mr-2 text-blue-400 text-xs"></i>
+              <i class="fas fa-envelope mr-2 text-xs" :style="`color: ${primaryColor}`"></i>
               E-MAIL
             </label>
             <input 
               type="email" 
               v-model="email"
               :placeholder="'seu@email.com'" 
-              class="w-full bg-slate-900/40 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-blue-500 focus:bg-slate-900/60 transition-all duration-300 placeholder-gray-600 text-sm"
+              class="w-full text-white px-4 py-3 rounded-lg focus:outline-none transition-all duration-300 placeholder-gray-600 text-sm dynamic-input"
               required
             >
           </div>
@@ -56,31 +56,32 @@
           <!-- Password Field -->
           <div>
             <label class="flex items-center text-gray-400 text-xs font-medium mb-2 uppercase tracking-wider">
-              <i class="fas fa-lock mr-2 text-blue-400 text-xs"></i>
+              <i class="fas fa-lock mr-2 text-xs" :style="`color: ${primaryColor}`"></i>
               SENHA
             </label>
             <input 
               type="password" 
               v-model="password"
               :placeholder="'••••••••'" 
-              class="w-full bg-slate-900/40 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-blue-500 focus:bg-slate-900/60 transition-all duration-300 placeholder-gray-600 text-sm"
+              class="w-full text-white px-4 py-3 rounded-lg focus:outline-none transition-all duration-300 placeholder-gray-600 text-sm dynamic-input"
               required
             >
           </div>
           
           <!-- Forgot Password -->
           <div class="text-right">
-            <a href="#" class="text-blue-400 text-xs hover:text-blue-300 transition-colors">
+            <a href="#" class="text-xs transition-colors" :style="`color: ${primaryColor}`">
               Esqueceu a senha?
             </a>
           </div>
           
           <!-- Login Button -->
-          <button 
-            type="submit"
-            :disabled="isLoading"
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm"
-          >
+                      <button 
+              type="submit"
+              :disabled="isLoading"
+              class="w-full text-white font-semibold py-3 rounded-lg transform hover:scale-[1.01] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm"
+              :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`"
+            >
             <svg v-if="isLoading" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -95,13 +96,14 @@
           <div class="text-center pt-4">
             <p class="text-gray-400 text-sm">
               Não tem uma conta?
-              <button 
-                type="button"
-                @click="$router.push('/register')"
-                class="text-blue-400 font-semibold hover:text-blue-300 transition-colors"
+              <a 
+                :href="registerLink"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-semibold transition-colors" :style="`color: ${primaryColor}`"
               >
                 Criar conta
-              </button>
+              </a>
             </p>
           </div>
         </form>
@@ -109,10 +111,10 @@
     </div>
 
     <!-- Desktop Layout -->
-    <div class="hidden lg:flex w-full max-w-7xl mx-auto shadow-2xl rounded-2xl overflow-hidden m-4">
+    <div class="hidden lg:flex w-full max-w-7xl mx-auto shadow-2xl rounded-2xl overflow-hidden m-4 border border-white/20">
       
       <!-- Left Side - Welcome Section -->
-      <div class="lg:w-5/12 relative bg-gradient-to-br from-slate-800/90 via-blue-900/30 to-slate-800/90 p-12">
+      <div class="lg:w-5/12 relative p-12" :style="`background: linear-gradient(to bottom right, color-mix(in srgb, ${backgroundColor} 90%, #555), color-mix(in srgb, ${primaryColor} 30%, ${backgroundColor} 70%), color-mix(in srgb, ${backgroundColor} 90%, #555))`">
         <!-- Background Pattern -->
         <div class="absolute inset-0">
           <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
@@ -136,22 +138,22 @@
           <!-- Features -->
           <div class="space-y-4">
             <div class="flex items-center space-x-4 bg-black/20 backdrop-blur-sm rounded-xl px-5 py-4 border border-white/5">
-              <div class="flex-shrink-0 w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <i class="fas fa-robot text-blue-400 text-sm"></i>
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-robot text-sm" :style="`color: ${primaryColor}`"></i>
               </div>
               <span class="text-white/80 text-base">Sinais com IA Avançada</span>
             </div>
             
             <div class="flex items-center space-x-4 bg-black/20 backdrop-blur-sm rounded-xl px-5 py-4 border border-white/5">
-              <div class="flex-shrink-0 w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <i class="fas fa-chart-bar text-blue-400 text-sm"></i>
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-chart-bar text-sm" :style="`color: ${primaryColor}`"></i>
               </div>
               <span class="text-white/80 text-base">Análises Preditivas</span>
             </div>
             
             <div class="flex items-center space-x-4 bg-black/20 backdrop-blur-sm rounded-xl px-5 py-4 border border-white/5">
-              <div class="flex-shrink-0 w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <i class="fas fa-bullseye text-blue-400 text-sm"></i>
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-bullseye text-sm" :style="`color: ${primaryColor}`"></i>
               </div>
               <span class="text-white/80 text-base">Alta Taxa de Acerto</span>
             </div>
@@ -160,7 +162,7 @@
       </div>
 
       <!-- Right Side - Login Form -->
-      <div class="lg:w-7/12 flex items-center justify-center p-10 bg-[#0a0f1f]">
+      <div class="lg:w-7/12 flex items-center justify-center p-10" :style="`background-color: ${backgroundColor}`">
         
         <!-- Login Form Container -->
         <div class="w-full max-w-md">
@@ -173,14 +175,14 @@
             <!-- Email Field -->
             <div>
               <label class="flex items-center text-gray-400 text-sm font-medium mb-3 uppercase tracking-wider">
-                <i class="fas fa-envelope mr-2 text-blue-400"></i>
+                <i class="fas fa-envelope mr-2" :style="`color: ${primaryColor}`"></i>
                 E-MAIL
               </label>
               <input 
                 type="email" 
                 v-model="email"
                 :placeholder="'seu@email.com'" 
-                class="w-full bg-slate-900/40 border border-slate-800 text-white px-4 py-3.5 rounded-lg focus:outline-none focus:border-blue-500 focus:bg-slate-900/60 transition-all duration-300 placeholder-gray-600"
+                class="w-full text-white px-4 py-3.5 rounded-lg focus:outline-none transition-all duration-300 placeholder-gray-600 dynamic-input"
                 required
               >
             </div>
@@ -188,21 +190,21 @@
             <!-- Password Field -->
             <div>
               <label class="flex items-center text-gray-400 text-sm font-medium mb-3 uppercase tracking-wider">
-                <i class="fas fa-lock mr-2 text-blue-400"></i>
+                <i class="fas fa-lock mr-2" :style="`color: ${primaryColor}`"></i>
                 SENHA
               </label>
               <input 
                 type="password" 
                 v-model="password"
                 :placeholder="'••••••••'" 
-                class="w-full bg-slate-900/40 border border-slate-800 text-white px-4 py-3.5 rounded-lg focus:outline-none focus:border-blue-500 focus:bg-slate-900/60 transition-all duration-300 placeholder-gray-600"
+                class="w-full text-white px-4 py-3.5 rounded-lg focus:outline-none transition-all duration-300 placeholder-gray-600 dynamic-input"
                 required
               >
             </div>
             
             <!-- Forgot Password -->
             <div class="text-right">
-              <a href="#" class="text-blue-400 text-sm hover:text-blue-300 transition-colors">
+              <a href="#" class="text-sm transition-colors" :style="`color: ${primaryColor}`">
                 Esqueceu a senha?
               </a>
             </div>
@@ -211,7 +213,8 @@
             <button 
               type="submit"
               :disabled="isLoading"
-              class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              class="w-full text-white font-semibold py-3.5 rounded-lg transform hover:scale-[1.01] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`"
             >
               <svg v-if="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -224,26 +227,22 @@
             </button>
             
             <!-- Divider -->
-            <div class="relative">
-              <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-slate-700"></div>
-              </div>
-              <div class="relative flex justify-center text-sm">
-                <span class="px-4 bg-[#0a0f1f] text-gray-500">ou</span>
-              </div>
+            <div class="text-center">
+              <span class="text-gray-500 text-sm">ou</span>
             </div>
             
             <!-- Register Link -->
             <div class="text-center">
               <p class="text-gray-400">
                 Não tem uma conta?
-                <button 
-                  type="button"
-                  @click="$router.push('/register')"
-                  class="text-blue-400 font-semibold hover:text-blue-300 transition-colors ml-1"
+                <a 
+                  :href="registerLink"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-semibold transition-colors ml-1" :style="`color: ${primaryColor}`"
                 >
                   Criar conta
-                </button>
+                </a>
               </p>
             </div>
           </form>
@@ -258,7 +257,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import Swal from 'sweetalert2'
-import logoUrl from '../assets/polarium.png'
+import defaultLogoUrl from '../assets/polarium.png'
 import Polarium from '../assets/polarium.png'
 
 import { translations, languageNames } from '@/locales'
@@ -269,6 +268,12 @@ const password = ref('')
 const isLoading = ref(false)
 const currentLanguage = ref(localStorage.getItem('language') || 'pt')
 const isLanguageDropdownOpen = ref(false)
+
+// Configurações dinâmicas - apenas primary e background
+const logoUrl = ref(defaultLogoUrl)
+const primaryColor = ref('#3b82f6')
+const backgroundColor = ref('#0f172a')
+const registerLink = ref('/register')
 
 const t = computed(() => translations[currentLanguage.value])
 
@@ -282,7 +287,43 @@ const selectLanguage = (lang) => {
   isLanguageDropdownOpen.value = false
 }
 
+// Função para carregar configurações do servidor
+const loadSettings = async () => {
+  try {
+    // Obter o slug da URL usando a função global
+    const slug = window.getAppSlug()
+    const response = await axios.get(`http://localhost:2006/api/settings/${slug}`)
+    if (response.data.success) {
+      const settings = response.data.settings
+      logoUrl.value = settings.logoUrl || defaultLogoUrl
+      primaryColor.value = settings.primaryColor || '#3b82f6'
+      backgroundColor.value = settings.backgroundColor || '#0f172a'
+      registerLink.value = settings.registerLink || '/register'
+      
+      // Aplicar as cores CSS customizadas
+      applyCustomColors()
+    }
+  } catch (error) {
+    console.error('Erro ao carregar configurações:', error)
+    // Usar configurações padrão em caso de erro
+  }
+}
+
+// Função para aplicar cores personalizadas via CSS custom properties
+const applyCustomColors = () => {
+  const root = document.documentElement
+  root.style.setProperty('--primary-color', primaryColor.value)
+  root.style.setProperty('--background-color', backgroundColor.value)
+  
+  // Gerar variações da cor primária automaticamente
+  root.style.setProperty('--primary-light', primaryColor.value + '20') // 20% opacity
+  root.style.setProperty('--primary-dark', primaryColor.value + 'dd') // darker
+}
+
 onMounted(() => {
+  // Carregar configurações do servidor
+  loadSettings()
+  
   document.addEventListener('click', (e) => {
     const dropdown = document.querySelector('.language-dropdown')
     if (dropdown && !dropdown.contains(e.target)) {
@@ -343,7 +384,20 @@ const handleLogin = async (event) => {
       }
       
       setTimeout(() => {
-        router.push('/dashboard')
+        // Verificar se estamos em uma rota com slug
+        const currentPath = router.currentRoute.value.path
+        const slug = currentPath.split('/')[1]
+        const isSlugRoute = currentPath.includes(`/${slug}/login`) && 
+                            slug !== 'login' && slug !== 'dashboard' && 
+                            slug !== 'tutorials' && slug !== 'settings' && 
+                            slug !== 'ranking' && slug !== 'links'
+        
+        // Navegar para dashboard mantendo o slug se necessário
+        if (isSlugRoute) {
+          router.push(`/${slug}/dashboard`)
+        } else {
+          router.push('/dashboard')
+        }
       }, 1000)
     } else {
       showToast(t.value.loginError, true)
@@ -389,8 +443,8 @@ document.addEventListener("keydown", function (e) {
 /* Grid Pattern for Left Side */
 .bg-grid-pattern {
 background-image: 
-  linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-  linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+  linear-gradient(color-mix(in srgb, var(--primary-color) 10%, transparent) 1px, transparent 1px),
+  linear-gradient(90deg, color-mix(in srgb, var(--primary-color) 10%, transparent) 1px, transparent 1px);
 background-size: 40px 40px;
 animation: grid-move 20s linear infinite;
 }
@@ -412,7 +466,7 @@ animation: float-orb 20s infinite ease-in-out;
 .orb-left-1 {
 width: 350px;
 height: 350px;
-background: linear-gradient(135deg, #3b82f6, #06b6d4);
+background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #fff 20%));
 top: 10%;
 left: -100px;
 animation-delay: 0s;
@@ -421,7 +475,7 @@ animation-delay: 0s;
 .orb-left-2 {
 width: 300px;
 height: 300px;
-background: linear-gradient(135deg, #1d4ed8, #0284c7);
+background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 60%, #000 40%), color-mix(in srgb, var(--primary-color) 40%, #000 60%));
 bottom: 10%;
 right: -100px;
 animation-delay: 8s;
@@ -453,16 +507,18 @@ background: rgba(255, 255, 255, 0.08);
 }
 
 /* Input Field Effects */
-input[type="email"],
-input[type="password"] {
+.dynamic-input {
+background: color-mix(in srgb, var(--background-color) 60%, transparent) !important;
+border: 1px solid #374151 !important; /* Borda cinza fixa */
 transition: all 0.3s ease;
 }
 
-input[type="email"]:focus,
-input[type="password"]:focus {
+.dynamic-input:focus {
+border-color: #6b7280 !important; /* Borda cinza mais clara no foco */
+background: color-mix(in srgb, var(--background-color) 80%, transparent) !important;
 box-shadow: 
-  0 0 0 3px rgba(59, 130, 246, 0.1),
-  0 0 20px rgba(59, 130, 246, 0.15);
+  0 0 0 3px color-mix(in srgb, var(--primary-color) 10%, transparent),
+  0 0 20px color-mix(in srgb, var(--primary-color) 15%, transparent);
 transform: translateY(-1px);
 }
 
@@ -506,7 +562,7 @@ bottom: -2px;
 left: 0;
 width: 0;
 height: 2px;
-background: linear-gradient(90deg, #3b82f6, #06b6d4);
+background: linear-gradient(90deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #fff 20%));
 transition: width 0.3s ease;
 }
 
@@ -516,9 +572,9 @@ width: 100%;
 
 /* Toast Notifications */
 .custom-toast {
-background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+background: linear-gradient(135deg, color-mix(in srgb, var(--background-color) 95%, transparent), color-mix(in srgb, var(--background-color) 85%, var(--primary-color) 15%));
 backdrop-filter: blur(10px);
-border: 1px solid rgba(59, 130, 246, 0.2);
+border: 1px solid color-mix(in srgb, var(--primary-color) 20%, transparent);
 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 border-radius: 12px;
 padding: 14px 24px;
@@ -526,12 +582,12 @@ padding: 14px 24px;
 
 .custom-toast.success {
 border-left: 4px solid #10B981;
-background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(15, 23, 42, 0.95));
+background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), color-mix(in srgb, var(--background-color) 95%, transparent));
 }
 
 .custom-toast.error {
 border-left: 4px solid #EF4444;
-background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(15, 23, 42, 0.95));
+background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), color-mix(in srgb, var(--background-color) 95%, transparent));
 }
 
 /* Animations */
@@ -580,16 +636,16 @@ height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-background: rgba(15, 23, 42, 0.5);
+background: color-mix(in srgb, var(--background-color) 50%, transparent);
 }
 
 ::-webkit-scrollbar-thumb {
-background: linear-gradient(180deg, #3b82f6, #06b6d4);
+background: linear-gradient(180deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #fff 20%));
 border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-background: linear-gradient(180deg, #2563eb, #0891b2);
+background: linear-gradient(180deg, color-mix(in srgb, var(--primary-color) 90%, #000 10%), color-mix(in srgb, var(--primary-color) 70%, #000 30%));
 }
 
 /* Mobile Optimizations */

@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="min-h-screen">
+    <div class="min-h-screen" :style="`background-color: ${backgroundColor}`">
       <!-- Floating Orbs -->
       <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div class="floating-orb orb-1"></div>
@@ -30,9 +30,12 @@
                 :class="[
                   'px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg font-medium transition-all text-sm lg:text-base whitespace-nowrap',
                   selectedPeriod === period.value 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-slate-900/50 text-gray-400 border border-slate-700 hover:border-blue-500'
+                    ? 'text-white' 
+                    : 'text-gray-400 border hover:border-opacity-50'
                 ]"
+                :style="selectedPeriod === period.value 
+                  ? `background-color: ${primaryColor}` 
+                  : `background: color-mix(in srgb, ${backgroundColor} 50%, transparent); border-color: color-mix(in srgb, ${backgroundColor} 70%, #555); &:hover { border-color: ${primaryColor}; }`"
               >
                 {{ period.label }}
               </button>
@@ -173,16 +176,16 @@
         <div class="glass-card rounded-xl lg:rounded-2xl p-4 lg:p-6">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 lg:mb-6">
             <h2 class="text-lg lg:text-xl font-bold text-white flex items-center gap-2">
-              <i class="fas fa-list-ol text-blue-400 text-base lg:text-lg"></i>
+                              <i class="fas fa-list-ol text-base lg:text-lg" :style="`color: ${primaryColor}`"></i>
               Ranking Completo
             </h2>
             
             <div class="flex gap-2">
-              <button class="px-3 py-1.5 rounded-lg bg-slate-900/50 text-gray-400 text-sm hover:text-white transition-all">
+              <button class="px-3 py-1.5 rounded-lg text-gray-400 text-sm hover:text-white transition-all" :style="`background: color-mix(in srgb, ${backgroundColor} 50%, transparent)`">
                 <i class="fas fa-filter mr-1"></i>
                 Filtros
               </button>
-              <button class="px-3 py-1.5 rounded-lg bg-slate-900/50 text-gray-400 text-sm hover:text-white transition-all">
+              <button class="px-3 py-1.5 rounded-lg text-gray-400 text-sm hover:text-white transition-all" :style="`background: color-mix(in srgb, ${backgroundColor} 50%, transparent)`">
                 <i class="fas fa-download mr-1"></i>
                 Exportar
               </button>
@@ -236,11 +239,11 @@
                   </div>
                   <div>
                     <p class="text-gray-400 text-xs mb-1">Média Mensal</p>
-                    <p class="text-blue-400 font-medium">R$ {{ trader.monthlyAverage.toLocaleString('pt-BR') }}</p>
+                    <p class="font-medium" :style="`color: ${primaryColor}`">R$ {{ trader.monthlyAverage.toLocaleString('pt-BR') }}</p>
                   </div>
                 </div>
                 
-                <button class="w-full py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-all text-sm">
+                <button class="w-full py-2 rounded-lg transition-all text-sm" :style="`background: color-mix(in srgb, ${primaryColor} 20%, transparent); color: ${primaryColor}; &:hover { background: color-mix(in srgb, ${primaryColor} 30%, transparent); }`">
                   <i class="fas fa-eye mr-1"></i>
                   Ver Detalhes
                 </button>
@@ -252,7 +255,7 @@
           <div class="hidden lg:block overflow-x-auto">
             <table class="w-full">
               <thead>
-                <tr class="text-gray-400 text-sm border-b border-slate-800">
+                <tr class="text-gray-400 text-sm border-b" :style="`border-color: color-mix(in srgb, ${backgroundColor} 80%, #555)`">
                   <th class="text-left pb-4 pl-4">Posição</th>
                   <th class="text-left pb-4">Depositante</th>
                   <th class="text-left pb-4">Depósito Total</th>
@@ -265,7 +268,8 @@
               </thead>
               <tbody>
                 <tr v-for="(trader, index) in paginatedTraders" :key="trader.id" 
-                  class="border-b border-slate-800/50 hover:bg-slate-900/30 transition-colors">
+                  class="border-b transition-colors"
+                  :style="`border-color: color-mix(in srgb, ${backgroundColor} 50%, transparent); &:hover { background: color-mix(in srgb, ${backgroundColor} 30%, transparent); }`">
                   <td class="py-4 pl-4">
                     <div class="flex items-center gap-2">
                       <span class="text-white font-medium">#{{ trader.position }}</span>
@@ -276,7 +280,7 @@
                   </td>
                   <td class="py-4">
                     <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <div class="w-10 h-10 rounded-full flex items-center justify-center" :style="`background: linear-gradient(to bottom right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #8b5cf6 20%))`">
                         <i class="fas fa-user text-white text-sm"></i>
                       </div>
                       <div>
@@ -295,7 +299,7 @@
                     <span class="text-gray-400">{{ trader.lastDeposit }}</span>
                   </td>
                   <td class="py-4">
-                    <span class="text-blue-400 font-medium">
+                    <span class="font-medium" :style="`color: ${primaryColor}`">
                       R$ {{ trader.monthlyAverage.toLocaleString('pt-BR') }}
                     </span>
                   </td>
@@ -310,7 +314,7 @@
                     </span>
                   </td>
                   <td class="py-4 text-center">
-                    <button class="px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-all text-sm">
+                    <button class="px-3 py-1.5 rounded-lg transition-all text-sm" :style="`background: color-mix(in srgb, ${primaryColor} 20%, transparent); color: ${primaryColor}; &:hover { background: color-mix(in srgb, ${primaryColor} 30%, transparent); }`">
                       <i class="fas fa-eye mr-1"></i>
                       Detalhes
                     </button>
@@ -330,7 +334,8 @@
               <button 
                 @click="currentPage--" 
                 :disabled="currentPage === 1"
-                class="px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg bg-slate-900/50 text-gray-400 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
+                class="px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg text-gray-400 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
+                :style="`background: color-mix(in srgb, ${backgroundColor} 50%, transparent)`"
               >
                 <i class="fas fa-chevron-left"></i>
               </button>
@@ -342,9 +347,12 @@
                 :class="[
                   'px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg transition-all text-sm lg:text-base',
                   currentPage === page 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-slate-900/50 text-gray-400 hover:text-white'
+                    ? 'text-white' 
+                    : 'text-gray-400 hover:text-white'
                 ]"
+                :style="currentPage === page 
+                  ? `background-color: ${primaryColor}` 
+                  : `background: color-mix(in srgb, ${backgroundColor} 50%, transparent)`"
               >
                 {{ page }}
               </button>
@@ -352,7 +360,8 @@
               <button 
                 @click="currentPage++" 
                 :disabled="currentPage === totalPages"
-                class="px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg bg-slate-900/50 text-gray-400 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
+                class="px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg text-gray-400 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
+                :style="`background: color-mix(in srgb, ${backgroundColor} 50%, transparent)`"
               >
                 <i class="fas fa-chevron-right"></i>
               </button>
@@ -365,8 +374,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AppLayout from '@/components/AppLayout.vue'
+import axios from 'axios'
 
 // Period filter
 const periods = [
@@ -376,6 +386,10 @@ const periods = [
   { value: 'all', label: 'Todos' }
 ]
 const selectedPeriod = ref('month')
+
+// Configurações dinâmicas de cores da API
+const primaryColor = ref('#3b82f6')
+const backgroundColor = ref('#0f172a')
 
 // Pagination
 const currentPage = ref(1)
@@ -426,13 +440,45 @@ const visiblePages = computed(() => {
   
   return pages
 })
+
+// Função para carregar configurações de cores da API
+const loadSettings = async () => {
+  try {
+    // Obter o slug da URL ou usar 'default'
+    const slug = window.getAppSlug()
+    const response = await axios.get(`http://localhost:2006/api/settings/${slug}`)
+    if (response.data.success) {
+      const settings = response.data.settings
+      primaryColor.value = settings.primaryColor || '#3b82f6'
+      backgroundColor.value = settings.backgroundColor || '#0f172a'
+      
+      // Aplicar as cores CSS customizadas
+      applyCustomColors()
+    }
+  } catch (error) {
+    console.error('Erro ao carregar configurações:', error)
+    // Usar configurações padrão em caso de erro
+  }
+}
+
+// Função para aplicar cores personalizadas via CSS custom properties
+const applyCustomColors = () => {
+  const root = document.documentElement
+  root.style.setProperty('--primary-color', primaryColor.value)
+  root.style.setProperty('--background-color', backgroundColor.value)
+}
+
+onMounted(async () => {
+  // Carregar configurações de cores da API
+  await loadSettings()
+})
 </script>
 
 <style scoped>
 /* Glass Card Effect */
 .glass-card {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.3));
-  border: 1px solid rgba(59, 130, 246, 0.1);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--background-color) 60%, transparent), color-mix(in srgb, var(--background-color) 30%, transparent));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 10%, transparent);
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
@@ -449,7 +495,7 @@ const visiblePages = computed(() => {
 .orb-1 {
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b); /* Mantém dourado para tema de ranking */
   top: 10%;
   right: 10%;
   animation-delay: 0s;
@@ -458,7 +504,7 @@ const visiblePages = computed(() => {
 .orb-2 {
   width: 300px;
   height: 300px;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #6366f1 20%));
   bottom: 20%;
   left: 10%;
   animation-delay: 7s;
@@ -467,7 +513,7 @@ const visiblePages = computed(() => {
 .orb-3 {
   width: 250px;
   height: 250px;
-  background: linear-gradient(135deg, #10b981, #06b6d4);
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 70%, #06b6d4 30%));
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

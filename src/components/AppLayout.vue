@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden">
+  <div class="min-h-screen text-white relative overflow-hidden" :style="`background: linear-gradient(to bottom right, ${backgroundColor}, color-mix(in srgb, ${backgroundColor} 70%, ${primaryColor} 30%), ${backgroundColor})`">
     <!-- Floating Orbs Background -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
       <div class="floating-orb orb-1"></div>
@@ -10,8 +10,8 @@
     <!-- Notificação fixa de operação em andamento -->
     <transition name="fade">
       <div v-if="showTradeNotification" class="fixed top-6 right-6 z-[100] min-w-[320px] max-w-xs glass-notification rounded-xl px-5 py-3 flex items-center gap-3 animate-fade-in-up pointer-events-auto">
-        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-          <i class="fas fa-chart-line text-blue-400"></i>
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+          <i class="fas fa-chart-line" :style="`color: ${primaryColor}`"></i>
         </div>
         <div class="flex-1">
           <div class="font-semibold text-base text-white">Trade em andamento</div>
@@ -21,7 +21,7 @@
             <span v-if="tradeInfo.value" class="ml-2">R$ {{ tradeInfo.value }}</span>
           </div>
         </div>
-        <i class="fas fa-spinner fa-spin text-blue-400 text-lg" v-if="tradeInfo && tradeInfo.status === 'executando'"></i>
+        <i class="fas fa-spinner fa-spin text-lg" :style="`color: ${primaryColor}`" v-if="tradeInfo && tradeInfo.status === 'executando'"></i>
         <i v-else-if="tradeInfo && tradeInfo.status === 'win'" class="fas fa-check-circle text-green-400 text-lg"></i>
         <i v-else-if="tradeInfo && tradeInfo.status === 'loss'" class="fas fa-times-circle text-red-400 text-lg"></i>
       </div>
@@ -55,8 +55,8 @@
                 <img :src="logoUrl" alt="Polarium" class="logo-img">
               </div>
               <div class="brand-text">
-                <span class="brand-name">POLARIUM</span>
-                <span class="brand-subtitle">Copy Trader</span>
+                <span class="brand-name">{{ appName }}</span>
+                <span class="brand-subtitle">Trade Auto Pilot</span>
               </div>
             </div>
 
@@ -101,7 +101,7 @@
               <a href="https://trade.polariumbroker.com/traderoom" target="_blank"
                   class="nav-item nav-external">
                   <div class="nav-indicator"></div>
-                  <i class="fas fa-chart-line nav-icon text-blue-400"></i>
+                  <i class="fas fa-chart-line nav-icon" :style="`color: ${primaryColor}`"></i>
                   <span class="nav-text">{{ t.tradeStation }}</span>
                   <i class="fas fa-arrow-up-right-from-square nav-external-icon"></i>
               </a>
@@ -109,7 +109,7 @@
               <a href="https://trade.polariumbroker.com/traderoom" target="_blank"
                   class="nav-item nav-external">
                   <div class="nav-indicator"></div>
-                  <i class="fas fa-wallet nav-icon text-emerald-400"></i>
+                  <i class="fas fa-wallet nav-icon" :style="`color: ${primaryColor}`"></i>
                   <span class="nav-text">{{ t.deposit }}</span>
                   <i class="fas fa-arrow-up-right-from-square nav-external-icon"></i>
               </a>
@@ -117,7 +117,7 @@
               <a href="https://trade.polariumbroker.com/traderoom" target="_blank"
                   class="nav-item nav-external">
                   <div class="nav-indicator"></div>
-                  <i class="fas fa-money-bill-transfer nav-icon text-rose-400"></i>
+                  <i class="fas fa-money-bill-transfer nav-icon" :style="`color: ${primaryColor}`"></i>
                   <span class="nav-text">{{ t.withdraw }}</span>
                   <i class="fas fa-arrow-up-right-from-square nav-external-icon"></i>
                 </a>
@@ -131,14 +131,14 @@
                   class="nav-item"
                   :class="{ 'nav-active': $route.path === '/tutorials' }">
                   <div class="nav-indicator"></div>
-                  <i class="fas fa-graduation-cap nav-icon text-violet-400"></i>
+                  <i class="fas fa-graduation-cap nav-icon" :style="`color: ${primaryColor}`"></i>
                   <span class="nav-text">{{ t.tutorials }}</span>
               </a>
 
                 <a href="https://t.me/TRADERBRAVUSOFICIAL" target="_blank"
                   class="nav-item nav-external">
                   <div class="nav-indicator"></div>
-                  <i class="fas fa-headset nav-icon text-cyan-400"></i>
+                  <i class="fas fa-headset nav-icon" :style="`color: ${primaryColor}`"></i>
                   <span class="nav-text">{{ t.support }}</span>
                   <i class="fas fa-arrow-up-right-from-square nav-external-icon"></i>
                 </a>
@@ -147,7 +147,7 @@
                   class="nav-item"
                   :class="{ 'nav-active': $route.path === '/links' }">
                   <div class="nav-indicator"></div>
-                  <i class="fas fa-link nav-icon text-purple-400"></i>
+                  <i class="fas fa-link nav-icon" :style="`color: ${primaryColor}`"></i>
                   <span class="nav-text">Links</span>
                 </a>
               </div>
@@ -188,13 +188,19 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import logoUrl from '../assets/polarium.png'
+import defaultLogoUrl from '../assets/polarium.png'
 import { translations } from '@/locales'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 const router = useRouter()
 const isSidebarOpen = ref(false)
 const userDisplayName = ref('Usuário')
+
+// Configurações dinâmicas de cores da API
+const logoUrl = ref(defaultLogoUrl)
+const primaryColor = ref('#3b82f6')
+const backgroundColor = ref('#0f172a')
+const appName = ref('POLARIUM')
 
 // Tentar obter o nome do usuário do objeto 'user' no localStorage
 const userStr = localStorage.getItem('user')
@@ -240,7 +246,36 @@ const updateLanguageFromEvent = (event) => {
   }
 }
 
-// Computed property para traduções
+// Função para carregar configurações de cores da API
+const loadSettings = async () => {
+  try {
+    // Obter o slug da URL usando a função global
+    const slug = window.getAppSlug()
+    const response = await axios.get(`http://localhost:2006/api/settings/${slug}`)
+    if (response.data.success) {
+      const settings = response.data.settings
+      logoUrl.value = settings.logoUrl || defaultLogoUrl
+      primaryColor.value = settings.primaryColor || '#3b82f6'
+      backgroundColor.value = settings.backgroundColor || '#0f172a'
+      appName.value = settings.appName || 'POLARIUM'
+      
+      // Aplicar as cores CSS customizadas
+      applyCustomColors()
+    }
+  } catch (error) {
+    console.error('Erro ao carregar configurações:', error)
+    // Usar configurações padrão em caso de erro
+  }
+}
+
+// Função para aplicar cores personalizadas via CSS custom properties
+const applyCustomColors = () => {
+  const root = document.documentElement
+  root.style.setProperty('--primary-color', primaryColor.value)
+  root.style.setProperty('--background-color', backgroundColor.value)
+}
+
+  // Computed property para traduções
 const t = computed(() => {
   return translations[currentLanguage.value]
 })
@@ -293,12 +328,32 @@ function handleMenuNav(e, to) {
     })
     return false
   }
-  if (router.currentRoute.value.path !== to) {
-    router.push(to)
+  
+  // Verificar se estamos em uma rota com slug
+  const currentPath = router.currentRoute.value.path
+  const slug = currentPath.split('/')[1]
+  const isSlugRoute = currentPath.split('/').length > 2 && slug !== 'login' && 
+                      slug !== 'dashboard' && slug !== 'tutorials' && 
+                      slug !== 'settings' && slug !== 'ranking' && slug !== 'links'
+  
+  // Se estiver em uma rota com slug, manter o slug na navegação
+  if (isSlugRoute) {
+    const newPath = `/${slug}${to}`
+    if (router.currentRoute.value.path !== newPath) {
+      router.push(newPath)
+    }
+  } else {
+    // Rota normal sem slug
+    if (router.currentRoute.value.path !== to) {
+      router.push(to)
+    }
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // Carregar configurações de cores da API
+  await loadSettings()
+  
   window.addEventListener('bravus:operation-status', updateOperationStatus)
   window.addEventListener('bravus:operation-status', updateBotStatus)
   window.dispatchEvent(new CustomEvent('bravus:request-operation-status'))
@@ -364,9 +419,8 @@ onUnmounted(() => {
 .sidebar-modern {
   width: 280px;
   height: 100vh;
-  background: #0f172a;
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-  border-right: 1px solid rgba(59, 130, 246, 0.1);
+  background: linear-gradient(180deg, var(--background-color) 0%, color-mix(in srgb, var(--background-color) 80%, #333) 100%);
+  border-right: 1px solid color-mix(in srgb, var(--primary-color) 10%, transparent);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -384,7 +438,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 200px;
-  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary-color) 15%, transparent) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -407,7 +461,7 @@ onUnmounted(() => {
 .logo-glow {
   position: absolute;
   inset: -10px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--primary-color) 40%, transparent) 0%, transparent 70%);
   filter: blur(20px);
   animation: pulse-glow 3s ease-in-out infinite;
 }
@@ -417,7 +471,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 4px 20px rgba(59, 130, 246, 0.3));
+  filter: drop-shadow(0 4px 20px color-mix(in srgb, var(--primary-color) 30%, transparent));
 }
 
 .brand-text {
@@ -429,7 +483,7 @@ onUnmounted(() => {
 .brand-name {
   font-size: 1.25rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #fff 20%));
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -461,7 +515,7 @@ onUnmounted(() => {
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.3);
+  background: color-mix(in srgb, var(--primary-color) 30%, transparent);
   border-radius: 2px;
 }
 
@@ -498,7 +552,7 @@ onUnmounted(() => {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary-color) 10%, transparent), transparent);
   transform: translateX(-100%);
   transition: transform 0.6s;
 }
@@ -509,7 +563,7 @@ onUnmounted(() => {
 
 .nav-item:hover {
   color: #fff;
-  background: rgba(59, 130, 246, 0.05);
+  background: color-mix(in srgb, var(--primary-color) 5%, transparent);
   transform: translateX(4px);
 }
 
@@ -520,14 +574,14 @@ onUnmounted(() => {
   transform: translateY(-50%);
   width: 3px;
   height: 0;
-  background: linear-gradient(180deg, #3b82f6, #06b6d4);
+  background: linear-gradient(180deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #fff 20%));
   border-radius: 0 2px 2px 0;
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-active {
-  color: #3b82f6;
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%);
+  color: var(--primary-color);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--primary-color) 15%, transparent) 0%, color-mix(in srgb, var(--primary-color) 5%, transparent) 100%);
 }
 
 .nav-active .nav-indicator {
@@ -535,7 +589,7 @@ onUnmounted(() => {
 }
 
 .nav-active .nav-icon {
-  color: #3b82f6;
+  color: var(--primary-color);
   animation: icon-bounce 0.5s;
 }
 
@@ -575,7 +629,7 @@ onUnmounted(() => {
   display: inline-block;
   width: 6px;
   height: 6px;
-  background: #3b82f6;
+  background: var(--primary-color);
   border-radius: 50%;
   animation: pulse-dot 2s infinite;
 }
@@ -583,8 +637,8 @@ onUnmounted(() => {
 /* Footer Section */
 .sidebar-footer {
   padding: 1rem;
-  border-top: 1px solid rgba(59, 130, 246, 0.1);
-  background: rgba(15, 23, 42, 0.5);
+  border-top: 1px solid color-mix(in srgb, var(--primary-color) 10%, transparent);
+  background: color-mix(in srgb, var(--background-color) 50%, transparent);
   margin-top: auto;
   flex-shrink: 0;
 }
@@ -595,14 +649,14 @@ onUnmounted(() => {
   gap: 0.75rem;
   padding: 0.75rem;
   margin-bottom: 0.75rem;
-  background: rgba(59, 130, 246, 0.05);
+  background: color-mix(in srgb, var(--primary-color) 5%, transparent);
   border-radius: 0.75rem;
 }
 
 .user-avatar {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #fff 20%));
   border-radius: 0.75rem;
   display: flex;
   align-items: center;
@@ -683,15 +737,15 @@ onUnmounted(() => {
 
 /* Glass Effects for other elements */
 .glass-notification {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.6));
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--background-color) 95%, transparent), color-mix(in srgb, var(--background-color) 60%, transparent));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .glass-button {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.4));
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--background-color) 80%, transparent), color-mix(in srgb, var(--background-color) 40%, transparent));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 20%, transparent);
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
@@ -708,7 +762,7 @@ onUnmounted(() => {
 .orb-1 {
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #fff 20%));
   top: -200px;
   left: -100px;
   animation-delay: 0s;
@@ -717,7 +771,7 @@ onUnmounted(() => {
 .orb-2 {
   width: 300px;
   height: 300px;
-  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 90%, #6366f1 10%), var(--primary-color));
   bottom: -150px;
   right: -100px;
   animation-delay: 5s;
@@ -726,7 +780,7 @@ onUnmounted(() => {
 .orb-3 {
   width: 250px;
   height: 250px;
-  background: linear-gradient(135deg, #06b6d4, #0ea5e9);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 80%, #fff 20%), color-mix(in srgb, var(--primary-color) 70%, #fff 30%));
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

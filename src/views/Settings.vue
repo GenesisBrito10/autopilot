@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="min-h-screen">
+    <div class="min-h-screen" :style="`background-color: ${backgroundColor}`">
       <!-- Floating Orbs -->
       <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div class="floating-orb orb-1"></div>
@@ -12,7 +12,7 @@
         <!-- Header -->
         <div class="mb-8">
           <h1 class="text-3xl font-bold text-white mb-2">Configurações</h1>
-          <p class="text-gray-400">Personalize as configurações do seu Copy Trader</p>
+          <p class="text-gray-400">Personalize as configurações do seu Trade Auto Pilot</p>
         </div>
 
         <!-- Settings Grid -->
@@ -21,8 +21,8 @@
           <div class="lg:col-span-2">
             <div class="glass-card p-6 rounded-2xl">
               <div class="flex items-center gap-3 mb-6">
-                <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                  <i class="fas fa-chart-line text-blue-400 text-xl"></i>
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                  <i class="fas fa-chart-line text-xl" :style="`color: ${primaryColor}`"></i>
                 </div>
                 <div>
                   <h2 class="text-xl font-bold text-white">Configurações de Trading</h2>
@@ -34,7 +34,7 @@
                 <!-- Entry Value -->
                 <div class="space-y-2">
                   <label class="flex items-center gap-2 text-sm font-medium text-gray-300">
-                    <i class="fas fa-dollar-sign text-blue-400"></i>
+                    <i class="fas fa-dollar-sign" :style="`color: ${primaryColor}`"></i>
                     Valor da Entrada
                   </label>
                   <div class="relative">
@@ -44,7 +44,7 @@
                       type="text" 
                       @input="formatEntryValue"
                       @blur="onInputBlur"
-                      class="w-full bg-slate-900/50 border border-slate-700 text-white pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-slate-900/60 transition-all duration-300"
+                      class="w-full text-white pl-12 pr-4 py-3.5 rounded-xl focus:outline-none transition-all duration-300 dynamic-input"
                       placeholder="10,00"
                     />
                   </div>
@@ -66,9 +66,12 @@
                       :class="[
                         'py-3 rounded-xl font-medium transition-all', 
                         settings.gales === 0 
-                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' 
-                          : 'bg-slate-900/50 text-gray-400 border border-slate-700 hover:border-yellow-500/30'
+                          ? 'text-white border' 
+                          : 'text-gray-400 border hover:border-opacity-50'
                       ]"
+                      :style="settings.gales === 0 
+                        ? `background-color: color-mix(in srgb, ${primaryColor} 20%, transparent); color: ${primaryColor}; border-color: color-mix(in srgb, ${primaryColor} 50%, transparent)` 
+                        : `background: color-mix(in srgb, ${backgroundColor} 50%, transparent); border-color: color-mix(in srgb, ${backgroundColor} 70%, #555); &:hover { border-color: color-mix(in srgb, ${primaryColor} 30%, transparent); }`"
                     >
                       0
                     </button>
@@ -78,9 +81,12 @@
                       :class="[
                         'py-3 rounded-xl font-medium transition-all', 
                         settings.gales === 1 
-                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' 
-                          : 'bg-slate-900/50 text-gray-400 border border-slate-700 hover:border-yellow-500/30'
+                          ? 'text-white border' 
+                          : 'text-gray-400 border hover:border-opacity-50'
                       ]"
+                      :style="settings.gales === 1 
+                        ? `background-color: color-mix(in srgb, ${primaryColor} 20%, transparent); color: ${primaryColor}; border-color: color-mix(in srgb, ${primaryColor} 50%, transparent)` 
+                        : `background: color-mix(in srgb, ${backgroundColor} 50%, transparent); border-color: color-mix(in srgb, ${backgroundColor} 70%, #555); &:hover { border-color: color-mix(in srgb, ${primaryColor} 30%, transparent); }`"
                     >
                       1
                     </button>
@@ -90,9 +96,12 @@
                       :class="[
                         'py-3 rounded-xl font-medium transition-all', 
                         settings.gales === 2 
-                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' 
-                          : 'bg-slate-900/50 text-gray-400 border border-slate-700 hover:border-yellow-500/30'
+                          ? 'text-white border' 
+                          : 'text-gray-400 border hover:border-opacity-50'
                       ]"
+                      :style="settings.gales === 2 
+                        ? `background-color: color-mix(in srgb, ${primaryColor} 20%, transparent); color: ${primaryColor}; border-color: color-mix(in srgb, ${primaryColor} 50%, transparent)` 
+                        : `background: color-mix(in srgb, ${backgroundColor} 50%, transparent); border-color: color-mix(in srgb, ${backgroundColor} 70%, #555); &:hover { border-color: color-mix(in srgb, ${primaryColor} 30%, transparent); }`"
                     >
                       2
                     </button>
@@ -102,9 +111,12 @@
                       :class="[
                         'py-3 rounded-xl font-medium transition-all', 
                         settings.gales === 3 
-                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' 
-                          : 'bg-slate-900/50 text-gray-400 border border-slate-700 hover:border-yellow-500/30'
+                          ? 'text-white border' 
+                          : 'text-gray-400 border hover:border-opacity-50'
                       ]"
+                      :style="settings.gales === 3 
+                        ? `background-color: color-mix(in srgb, ${primaryColor} 20%, transparent); color: ${primaryColor}; border-color: color-mix(in srgb, ${primaryColor} 50%, transparent)` 
+                        : `background: color-mix(in srgb, ${backgroundColor} 50%, transparent); border-color: color-mix(in srgb, ${backgroundColor} 70%, #555); &:hover { border-color: color-mix(in srgb, ${primaryColor} 30%, transparent); }`"
                     >
                       3
                     </button>
@@ -115,7 +127,7 @@
                 <!-- Save Button -->
                 <button 
                   type="submit"
-                  class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg"
+                  class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`"
                 >
                   <i class="fas fa-save"></i>
                   Salvar Configurações
@@ -131,7 +143,7 @@
             <!-- Quick Stats -->
             <div class="glass-card p-6 rounded-2xl">
               <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <i class="fas fa-info-circle text-blue-400"></i>
+                <i class="fas fa-info-circle" :style="`color: ${primaryColor}`"></i>
                 Status Atual
               </h3>
               <div class="space-y-3">
@@ -141,7 +153,7 @@
                 </div>
                 <div class="flex justify-between items-center">
                   <span class="text-gray-400 text-sm">Gales</span>
-                  <span class="text-yellow-400 font-medium">{{ settings.gales }}</span>
+                  <span class="font-medium" :style="`color: ${primaryColor}`">{{ settings.gales }}</span>
                 </div>
               </div>
             </div>
@@ -172,7 +184,7 @@
             <div class="glass-card p-6 rounded-2xl">
               <button 
                 @click="resetSettings"
-                class="w-full bg-slate-900/50 border border-slate-700 text-gray-400 font-medium py-3 rounded-xl hover:bg-slate-900/70 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+                class="w-full text-gray-400 font-medium py-3 rounded-xl hover:text-white transition-all duration-300 flex items-center justify-center gap-2" :style="`background: color-mix(in srgb, ${backgroundColor} 50%, transparent); border: 1px solid color-mix(in srgb, ${backgroundColor} 70%, #555); &:hover { background: color-mix(in srgb, ${backgroundColor} 70%, transparent); }`"
               >
                 <i class="fas fa-undo"></i>
                 Restaurar Padrões
@@ -189,6 +201,7 @@
 import { ref, onMounted, computed } from 'vue'
 import AppLayout from '@/components/AppLayout.vue'
 import Swal from 'sweetalert2'
+import axios from 'axios'
 
 // Função para formatar valores monetários no formato brasileiro
 const formatCurrencyBR = (value) => {
@@ -226,6 +239,10 @@ const defaultSettings = {
 }
 
 const settings = ref({ ...defaultSettings })
+
+// Configurações dinâmicas de cores da API
+const primaryColor = ref('#3b82f6')
+const backgroundColor = ref('#0f172a')
 
 // Variáveis para os valores formatados
 const formattedEntryValue = ref('')
@@ -306,7 +323,37 @@ const onInputBlur = () => {
   settings.value.entryValue = numericValue;
 }
 
-onMounted(() => {
+// Função para carregar configurações de cores da API
+const loadSettings = async () => {
+  try {
+    // Obter o slug da URL ou usar 'default'
+    const slug = window.getAppSlug()
+    const response = await axios.get(`http://localhost:2006/api/settings/${slug}`)
+    if (response.data.success) {
+      const settings = response.data.settings
+      primaryColor.value = settings.primaryColor || '#3b82f6'
+      backgroundColor.value = settings.backgroundColor || '#0f172a'
+      
+      // Aplicar as cores CSS customizadas
+      applyCustomColors()
+    }
+  } catch (error) {
+    console.error('Erro ao carregar configurações:', error)
+    // Usar configurações padrão em caso de erro
+  }
+}
+
+// Função para aplicar cores personalizadas via CSS custom properties
+const applyCustomColors = () => {
+  const root = document.documentElement
+  root.style.setProperty('--primary-color', primaryColor.value)
+  root.style.setProperty('--background-color', backgroundColor.value)
+}
+
+onMounted(async () => {
+  // Carregar configurações de cores da API
+  await loadSettings()
+  
   const saved = localStorage.getItem('botSettings')
   if (saved) {
     const savedSettings = JSON.parse(saved)
@@ -350,7 +397,7 @@ function resetSettings() {
     cancelButtonText: 'Cancelar',
     background: 'rgba(26, 31, 53, 0.98)',
     color: '#fff',
-    confirmButtonColor: '#3b82f6',
+    confirmButtonColor: primaryColor.value,
     cancelButtonColor: '#6b7280'
   }).then((result) => {
     if (result.isConfirmed) {
@@ -379,10 +426,25 @@ function resetSettings() {
 <style scoped>
 /* Glass Card Effect */
 .glass-card {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.3));
-  border: 1px solid rgba(59, 130, 246, 0.1);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--background-color) 60%, transparent), color-mix(in srgb, var(--background-color) 30%, transparent));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 10%, transparent);
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Dynamic Input */
+.dynamic-input {
+  background: color-mix(in srgb, var(--background-color) 50%, transparent) !important;
+  border: 1px solid #374151 !important;
+  transition: all 0.3s ease;
+}
+
+.dynamic-input:focus {
+  border-color: #6b7280 !important;
+  background: color-mix(in srgb, var(--background-color) 60%, transparent) !important;
+  box-shadow: 
+    0 0 0 3px color-mix(in srgb, var(--primary-color) 10%, transparent),
+    0 0 20px color-mix(in srgb, var(--primary-color) 15%, transparent);
 }
 
 /* Floating Orbs */
@@ -397,7 +459,7 @@ function resetSettings() {
 .orb-1 {
   width: 300px;
   height: 300px;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #fff 20%));
   top: 10%;
   right: 10%;
   animation-delay: 0s;
@@ -406,7 +468,7 @@ function resetSettings() {
 .orb-2 {
   width: 250px;
   height: 250px;
-  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 90%, #6366f1 10%), var(--primary-color));
   bottom: 20%;
   left: 5%;
   animation-delay: 10s;

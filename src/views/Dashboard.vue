@@ -1,45 +1,56 @@
 <template>
   <AppLayout>
-    <div id="trade-notification-container" class="fixed top-0 right-0 z-50"></div>
+    <div id="trade-notification-container" class="fixed top-0 right-0 z-[250]"></div>
     
     <div id="profit-notifications-container" class="fixed bottom-4 left-4 z-50 space-y-2 max-w-md"></div>
     
-    <!-- Modal de acesso bloqueado (sem saldo) - tem prioridade sobre outros modais quando o saldo é zero -->
-    <div v-if="accessBlocked && (!isFirstAccess || (isFirstAccess && balance <= 0 && !showFirstAccessModal))" class="fixed inset-0 bg-slate-900/95 z-[101] flex items-center justify-center">
-      <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4">
-        <div class="text-center">
-          <i class="fas fa-lock text-red-400 text-4xl mb-4"></i>
-          <h3 class="text-xl font-bold text-white mb-2">Acesso Bloqueado</h3>
-          
-          <div class="mb-4">
-            <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p class="text-gray-300 mb-2">Aguardando depósito inicial...</p>
-            <p class="text-red-400 font-semibold mb-4">Acesso a IA desativado por falta de saldo.</p>
-          </div>
-          
-          <button @click="redirectToDeposit" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
-            <i class="fas fa-wallet"></i>
-            DEPOSITAR AGORA E ATIVAR MINHA CONTA
+    <div v-if="showTutorial" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200]">
+      <div ref="tooltip" class="absolute glass-card p-4 rounded-lg text-white max-w-sm z-[220]" :style="tooltipStyle">
+        <h3 class="font-bold text-lg mb-2">{{ tutorialSteps[tutorialStep].title }}</h3>
+        <p class="text-sm text-gray-300">{{ tutorialSteps[tutorialStep].text }}</p>
+        <div class="flex justify-between items-center mt-4">
+          <span class="text-xs text-gray-400">{{ tutorialStep + 1 }} / {{ tutorialSteps.length }}</span>
+          <button v-if="tutorialStep < tutorialSteps.length - 1" @click="nextTutorialStep" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600 transition-all">
+            Próximo
           </button>
         </div>
       </div>
     </div>
+
+    <div v-if="!showTutorial && accessBlocked && !showFirstAccessModal" class="fixed inset-0 bg-slate-900/95 z-[101] flex items-center justify-center">
+      <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4">
+      <div class="text-center">
+        <i class="fas fa-lock text-red-400 text-4xl mb-4"></i>
+        <h3 class="text-xl font-bold text-white mb-2">Acesso Bloqueado</h3>
+        
+        <div class="mb-4">
+        <div class="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" :style="`border-color: ${primaryColor}; border-top-color: transparent`"></div>
+        <p class="text-gray-300 mb-2">Aguardando depósito inicial...</p>
+        <p class="text-red-400 font-semibold mb-4">Acesso a IA desativado por falta de saldo.</p>
+        </div>
+        
+        <button @click="redirectToDeposit" 
+        class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
+        <i class="fas fa-wallet"></i>
+        DEPOSITAR AGORA E ATIVAR MINHA CONTA
+        </button>
+      </div>
+      </div>
+    </div>
     
-    <!-- Modal de primeiro acesso com saldo zero (bloqueia o acesso) -->
-    <div v-if="isFirstAccess && balance <= 0 && showFirstAccessModal" class="fixed inset-0 bg-slate-900/95 z-[100] flex items-center justify-center">
+    <div v-if="!showTutorial && showFirstAccessModal && balance <= 0" class="fixed inset-0 bg-slate-900/95 z-[100] flex items-center justify-center">
       <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4">
         <div class="text-center">
           <i class="fas fa-gift text-yellow-400 text-4xl mb-4"></i>
           <h3 class="text-xl font-bold text-white mb-2">Ative sua conta</h3>
           
           <div>
-            <p class="text-blue-300 text-lg font-semibold mb-4">Você foi um dos escolhidos para ganhar o primeiro depósito em DOBRO!</p>
+            <p class="text-lg font-semibold mb-4" :style="`color: ${primaryColor}`">Você foi um dos escolhidos para ganhar o primeiro depósito em DOBRO!</p>
             <p class="text-white mb-6">Use o CUPOM: <span class="text-yellow-400 font-bold">SUPER100</span> para dobrar o valor depositado e liberar a IA.</p>
           </div>
           
           <button @click="redirectToDeposit" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
+            class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
             <i class="fas fa-wallet"></i>
             DEPOSITAR AGORA
           </button>
@@ -47,8 +58,7 @@
       </div>
     </div>
     
-    <!-- Modal de primeiro acesso com saldo positivo (pode ser fechado) -->
-    <div v-if="showBonusModal && balance > 0" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
+    <div v-if="!showTutorial && showBonusModal && balance > 0" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
       <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4 relative">
         <button @click="showBonusModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">
           <i class="fas fa-times"></i>
@@ -58,12 +68,12 @@
           <h3 class="text-xl font-bold text-white mb-2">Oferta Especial!</h3>
           
           <div>
-            <p class="text-blue-300 text-lg font-semibold mb-4">Você foi um dos escolhidos para ganhar o primeiro depósito em DOBRO!</p>
+            <p class="text-lg font-semibold mb-4" :style="`color: ${primaryColor}`">Você foi um dos escolhidos para ganhar o primeiro depósito em DOBRO!</p>
             <p class="text-white mb-6">Use o CUPOM: <span class="text-yellow-400 font-bold">SUPER100</span> para dobrar o valor depositado.</p>
           </div>
           
           <button @click="redirectToDeposit" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
+            class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
             <i class="fas fa-wallet"></i>
             APROVEITAR OFERTA
           </button>
@@ -71,8 +81,7 @@
       </div>
     </div>
     
-    <!-- Modal de saldo abaixo de R$20 (Bônus Triplo) -->
-    <div v-if="showBonusTripleModal && !showBonusRedemptionTripleModal && !isFirstAccess && !isTradeInProgress && !isWaitingForEntryTime && balance > 0 && balance < LOW_BALANCE_THRESHOLD" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
+    <div v-if="!showTutorial && showBonusTripleModal && !showBonusRedemptionTripleModal && !isFirstAccess && !isTradeInProgress && !isWaitingForEntryTime && balance > 0 && balance < LOW_BALANCE_THRESHOLD" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
       <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4 relative">
         <button @click="showBonusTripleModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">
           <i class="fas fa-times"></i>
@@ -82,11 +91,11 @@
           <h3 class="text-xl font-bold text-white mb-2">Oferta Especial!</h3>
           
           <div>
-            <p class="text-blue-300 text-lg font-semibold mb-4">Ei, sua banca está quase acabando, que tal um bônus para TRIPLICAR seu depósito?!</p>
+            <p class="text-lg font-semibold mb-4" :style="`color: ${primaryColor}`">Ei, sua banca está quase acabando, que tal um bônus para TRIPLICAR seu depósito?!</p>
           </div>
           
           <button @click="showBonusTripleRedemption" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
+            class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
             <i class="fas fa-gift"></i>
             RESGATAR BÔNUS
           </button>
@@ -94,8 +103,7 @@
       </div>
     </div>
     
-    <!-- Modal de Resgate de Bônus Triplo -->
-    <div v-if="showBonusRedemptionTripleModal && !isFirstAccess && !isTradeInProgress && !isWaitingForEntryTime && balance > 0 && balance < LOW_BALANCE_THRESHOLD" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
+    <div v-if="!showTutorial && showBonusRedemptionTripleModal && !isFirstAccess && !isTradeInProgress && !isWaitingForEntryTime && balance > 0 && balance < LOW_BALANCE_THRESHOLD" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
       <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4 relative">
         <div class="text-center">
           <i class="fas fa-check-circle text-green-400 text-4xl mb-4"></i>
@@ -111,7 +119,7 @@
           </div>
           
           <button @click="redirectToDeposit" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
+            class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
             <i class="fas fa-wallet"></i>
             DEPOSITAR AGORA
           </button>
@@ -119,8 +127,7 @@
       </div>
     </div>
     
-    <!-- Modal de saldo zerado (Bônus Duplo) - Só aparece se o acesso não estiver bloqueado -->
-    <div v-if="showBonusDoubleModal && !showBonusRedemptionDoubleModal && !isFirstAccess && !accessBlocked && !isTradeInProgress && !isWaitingForEntryTime && balance === 0" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
+    <div v-if="!showTutorial && showBonusDoubleModal && !showBonusRedemptionDoubleModal && !isFirstAccess && !isTradeInProgress && !isWaitingForEntryTime && balance === 0" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
       <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4 relative">
         <button @click="showBonusDoubleModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">
           <i class="fas fa-times"></i>
@@ -134,7 +141,7 @@
           </div>
           
           <button @click="showBonusDoubleRedemption" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
+            class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
             <i class="fas fa-gift"></i>
             RESGATAR BÔNUS
           </button>
@@ -142,8 +149,7 @@
       </div>
     </div>
     
-    <!-- Modal de Resgate de Bônus Duplo -->
-    <div v-if="showBonusRedemptionDoubleModal && !isFirstAccess && !accessBlocked && !isTradeInProgress && !isWaitingForEntryTime && balance === 0" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
+    <div v-if="!showTutorial && showBonusRedemptionDoubleModal && !isFirstAccess && !isTradeInProgress && !isWaitingForEntryTime && balance === 0" class="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center">
       <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4 relative">
         <div class="text-center">
           <i class="fas fa-check-circle text-green-400 text-4xl mb-4"></i>
@@ -159,7 +165,7 @@
           </div>
           
           <button @click="redirectToDeposit" 
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg">
+            class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
             <i class="fas fa-wallet"></i>
             DEPOSITAR AGORA
           </button>
@@ -167,12 +173,12 @@
       </div>
     </div>
     
-    <div class="min-h-screen">
+    <div class="min-h-screen" :style="`background-color: ${backgroundColor}`">
       <div class="p-4 lg:p-6 max-w-7xl mx-auto">
         <div class="mb-8">
           <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div>
-              <h1 class="text-3xl font-bold text-white mb-2">Copy Trader IA</h1>
+              <h1 class="text-3xl font-bold text-white mb-2">Trade Auto Pilot</h1>
               <p class="text-gray-400">Bem-vindo(a), {{ userDisplayName }}</p>
             </div>
 
@@ -181,12 +187,13 @@
                 <div class="flex items-center gap-3">
                   <div>
                     <p class="text-xs text-gray-400">Saldo</p>
-                    <p class="text-xl font-bold text-blue-400">{{ formatCurrency(balance) }}</p>
+                    <p class="text-xl font-bold" :style="`color: ${primaryColor}`">{{ formatCurrency(showTutorial ? fictionalBalance : balance) }}</p>
                   </div>
-                  <div class="w-px h-10 bg-gray-700"></div>
+                  <div class="w-px h-10" :style="`background-color: color-mix(in srgb, ${primaryColor} 30%, #374151)`"></div>
                   <button @click="switchAccount"
-                    class="px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-all text-sm">
-                    {{ accountType === 'demo' ? 'DEMO' : 'REAL' }}
+                    class="px-3 py-1.5 rounded-lg transition-all text-sm"
+                    :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent); color: ${primaryColor};`">
+                    {{ accountType === 'real' ? 'REAL' : 'REAL' }}
                   </button>
                 </div>
               </div>
@@ -195,17 +202,18 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div class="lg:col-span-1 space-y-6">
-            <div class="glass-card p-6 rounded-2xl">
+          <div class="lg-col-span-1 space-y-6">
+            <div id="asset-selection" class="glass-card p-6 rounded-2xl">
               <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <i class="fas fa-coins text-blue-400"></i>
+                <i class="fas fa-coins" :style="`color: ${primaryColor}`"></i>
                 Selecionar Ativo
               </h3>
 
               <div class="space-y-3">
                 <div class="relative">
                   <select v-model="selectedAsset"
-                    class="w-full bg-slate-900/50 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 transition-all">
+                    class="w-full bg-slate-900/50 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none transition-all"
+                    :style="`&:focus { border-color: ${primaryColor}; }`">
                   
                     <option v-for="asset in availableAssets" :key="asset.name" :value="asset.name">
                       {{ asset.name }}
@@ -213,11 +221,12 @@
                   </select>
                 </div>
 
-                <div>
+                <div id="time-selection">
                   <label class="text-sm text-gray-400 mb-2 block">Tempo de Expiração</label>
                   <div class="grid grid-cols-3 gap-2">
                     <button v-for="time in [1, 5]" :key="time" @click="selectedTime = time"
-                      :class="['py-2 rounded-lg font-medium transition-all', selectedTime === time ? 'bg-blue-500 text-white' : 'bg-slate-900/50 text-gray-400 border border-slate-700 hover:border-blue-500']">
+                      :class="['py-2 rounded-lg font-medium transition-all', selectedTime === time ? 'text-white' : 'bg-slate-900/50 text-gray-400 border border-slate-700']"
+                      :style="selectedTime === time ? `background-color: ${primaryColor}` : `&:hover { border-color: ${primaryColor}; }`">
                       {{ time }}M
                     </button>
                   </div>
@@ -226,15 +235,16 @@
                 </div>
             </div>
 
-            <div class="glass-card p-6 rounded-2xl">
+            <div id="generate-signal-button" class="glass-card p-6 rounded-2xl">
               <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <i class="fas fa-robot text-blue-400"></i>
+                <i class="fas fa-robot" :style="`color: ${primaryColor}`"></i>
                 Gerador de Sinais IA
               </h3>
               <div class="space-y-4">
                 <button @click="handleGenerateSignal"
                         :disabled="isGeneratingSignal || isTradeInProgress || isWaitingForEntryTime"
-                        class="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
                   <i :class="isGeneratingSignal ? 'fas fa-spinner fa-spin' : 'fas fa-wand-magic-sparkles'"></i>
                   <span v-if="isGeneratingSignal">Gerando...</span>
                   <span v-else-if="isWaitingForEntryTime">Aguardando Horário de Entrada</span>
@@ -255,7 +265,7 @@
             <div class="glass-card p-6 rounded-2xl h-full min-h-[500px]">
               <div class="flex justify-between items-center mb-4">
                  <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                  <i class="fas fa-chart-line text-blue-400"></i>
+                  <i class="fas fa-chart-line" :style="`color: ${primaryColor}`"></i>
                   Gráfico de Atividade
                 </h3>
               </div>
@@ -269,7 +279,7 @@
                    :series="chartSeries"
                  ></apexchart>
                  <div v-else class="h-[400px] flex flex-col items-center justify-center text-gray-500">
-                    <i class="fas fa-spinner fa-spin text-4xl text-blue-400/50"></i>
+                    <i class="fas fa-spinner fa-spin text-4xl" :style="`color: color-mix(in srgb, ${primaryColor} 50%, transparent)`"></i>
                     <p class="mt-4">Carregando dados do gráfico...</p>
                  </div>
               </div>
@@ -280,8 +290,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div class="glass-card p-6 rounded-2xl">
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                <i class="fas fa-trophy text-green-400"></i>
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-trophy" :style="`color: ${primaryColor}`"></i>
               </div>
               <span class="text-2xl font-bold text-green-400">{{ transactionStats.total > 0 ? transactionStats.winPercent : 0 }}%</span>
             </div>
@@ -294,8 +304,8 @@
 
           <div class="glass-card p-6 rounded-2xl">
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                <i class="fas fa-exchange-alt text-blue-400"></i>
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-exchange-alt" :style="`color: ${primaryColor}`"></i>
               </div>
               <span class="text-2xl font-bold text-white">{{ transactionStats.total }}</span>
             </div>
@@ -308,10 +318,10 @@
 
           <div class="glass-card p-6 rounded-2xl">
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                <i class="fas fa-chart-line text-purple-400"></i>
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-chart-line" :style="`color: ${primaryColor}`"></i>
               </div>
-              <span class="text-2xl font-bold text-purple-400">{{ formatCurrency(transactionStats.totalProfit) }}</span>
+              <span class="text-2xl font-bold" :style="`color: ${primaryColor}`">{{ formatCurrency(transactionStats.totalProfit) }}</span>
             </div>
             <h4 class="text-gray-400 text-sm">Lucro Total</h4>
             <div class="mt-3">
@@ -321,14 +331,14 @@
 
           <div class="glass-card p-6 rounded-2xl">
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center">
-                <i class="fas fa-users text-cyan-400"></i>
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center" :style="`background-color: color-mix(in srgb, ${primaryColor} 20%, transparent)`">
+                <i class="fas fa-users" :style="`color: ${primaryColor}`"></i>
               </div>
               <span class="text-2xl font-bold text-white">1,234</span>
             </div>
             <h4 class="text-gray-400 text-sm">Traders Ativos</h4>
             <div class="mt-3">
-              <span class="text-xs text-green-400">+12% hoje</span>
+              <span class="text-xs" :style="`color: ${primaryColor}`">+12% hoje</span>
             </div>
           </div>
         </div>
@@ -336,10 +346,10 @@
         <div class="glass-card p-6 rounded-2xl">
           <div class="flex justify-between items-center mb-6">
             <h3 class="text-lg font-bold text-white flex items-center gap-2">
-              <i class="fas fa-history text-blue-400"></i>
+              <i class="fas fa-history" :style="`color: ${primaryColor}`"></i>
               Operações Recentes
             </h3>
-            <button @click="showTransactionHistory" class="text-blue-400 hover:text-blue-300 transition-all text-sm">
+            <button @click="showTransactionHistory" class="transition-all text-sm" :style="`color: ${primaryColor}`">
               Ver todas <i class="fas fa-arrow-right ml-1"></i>
             </button>
           </div>
@@ -358,7 +368,8 @@
                 <tr
                   v-for="(item, idx) in [...history].sort((a, b) => new Date(b.payload?.closeTime || b.createdAt) - new Date(a.payload?.closeTime || a.createdAt)).slice(0, 5)"
                   :key="idx" 
-                  class="border-t border-slate-800 hover:bg-slate-800/30 transition-colors cursor-pointer"
+                  class="border-t transition-colors cursor-pointer"
+                  :style="`border-color: color-mix(in srgb, ${backgroundColor} 80%, #555); &:hover { background-color: color-mix(in srgb, ${backgroundColor} 30%, transparent); }`"
                   @click="showTradeDetailModal(item.uniqueId)">
                   <td class="py-3 px-2 md:px-3">
                     <div class="flex items-center gap-1 md:gap-2">
@@ -397,7 +408,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import AppLayout from '@/components/AppLayout.vue'
@@ -405,19 +416,57 @@ import Apexchart from 'vue3-apexcharts'
 import axios from 'axios'
 const router = useRouter()
 
+// --- Variáveis do Tutorial ---
+const showTutorial = ref(false)
+const tutorialStep = ref(0)
+const fictionalBalance = ref(100)
+const tooltip = ref(null)
+const tooltipStyle = ref({})
+const tutorialSteps = [
+  {
+    functionalHighlightTarget: '#asset-selection',
+    visualHighlightTarget: '#asset-selection',
+    tooltipTarget: '#asset-selection',
+    title: 'Passo 1: Seleção de Ativos',
+    text: 'Primeiro, escolha o par de moedas que nossa IA deve analisar para encontrar a melhor oportunidade de lucro.',
+    position: 'bottom'
+  },
+  {
+    functionalHighlightTarget: '#asset-selection',
+    visualHighlightTarget: '#time-selection',
+    tooltipTarget: '#time-selection',
+    title: 'Passo 2: Tempo de Expiração',
+    text: 'Agora, defina por quanto tempo a operação ficará aberta. Para começar, 1 minuto é uma ótima escolha.',
+    position: 'bottom'
+  },
+  {
+    functionalHighlightTarget: '#generate-signal-button',
+    visualHighlightTarget: '#generate-signal-button',
+    tooltipTarget: '#generate-signal-button',
+    title: 'Passo 3: Gerar Sinal!',
+    text: 'Tudo pronto! Agora, clique no botão "Gerar Sinal" para que a IA faça a análise e encontre uma oportunidade para você.',
+    position: 'top'
+  }
+]
+
 // State variables
 const userDisplayName = ref('Usuário(a)')
 const balance = ref(0)
-const accountType = ref('real')
+const currency = ref('BRL')
+const accountType = ref('demo')
 const isGeneratingSignal = ref(false)
 const history = ref([])
 const initialBalance = ref(null)
+
+// Configurações dinâmicas de cores da API
+const primaryColor = ref('#3b82f6')
+const backgroundColor = ref('#0f172a')
 
 // --- Variáveis para verificação de acesso e saldo ---
 const isFirstAccess = ref(false)
 const accessBlocked = ref(false)
 const showBonusModal = ref(false)
-const showFirstAccessModal = ref(true) // Controla a exibição do modal de primeiro acesso
+const showFirstAccessModal = ref(false)
 const checkingBalanceInterval = ref(null)
 const userEmail = ref(localStorage.getItem('userEmail') || '')
 let fakeNotificationInterval = null;
@@ -493,7 +542,6 @@ const updateChart = async () => {
 };
 
 // --- Funções de verificação de acesso e saldo (LÓGICA CORRIGIDA) ---
-// --- Verificação de acesso ao usuário ---
 const verifyUserAccess = async () => {
   if (!userEmail.value) {
     console.error('Email do usuário não encontrado para verificação.');
@@ -502,89 +550,35 @@ const verifyUserAccess = async () => {
   try {
     const { data } = await axios.post('https://ng.tradeautopilot.ai/api/verify-user', { email: userEmail.value });
     if (data.success) {
-      console.log('Verificação do usuário:', data.user);
       isFirstAccess.value = data.user.isFirstAccess;
 
-      // Verifica o saldo para determinar o modal a ser exibido
+      if (isFirstAccess.value) {
+        startTutorial();
+        return;
+      }
+      
       await updateBalance();
       
-      // Implementação das condições para exibição dos modais:
-      // 1. Primeiro acesso + saldo 0: Mostrar modal e bloquear acesso
-      // 2. Primeiro acesso + saldo > 0: Mostrar modal promocional que pode ser fechado
-      // 3. Não é primeiro acesso + saldo 0: Bloquear acesso
-      // 4. Não é primeiro acesso + saldo < R$20: Mostrar modal de bônus triplo
-      // 5. Não é primeiro acesso + saldo = 0: Mostrar modal de bônus duplo (caso não bloqueie acesso)
       const userStr = localStorage.getItem('user');
       if (!userStr) return 
       const user = JSON.parse(userStr);
-      const first_name = user.firstName
-      const last_name = user.lastName
-      const userid = user.userId
-
-      if (isFirstAccess.value && balance.value <= 0) {
-        // Condição 1: Primeiro acesso + saldo 0 (bloqueia acesso)
-        console.log('Primeiro acesso com saldo zero: bloqueando acesso e mostrando modal promocional');
-        accessBlocked.value = true; // Bloqueia o acesso
-        showBonusModal.value = false; // Não mostra o modal que pode ser fechado
-        showFirstAccessModal.value = true; // Mostra o modal de primeiro acesso
-        
-        // Registramos o primeiro acesso na API, mas não atualizamos o estado local para manter o modal visível
-        try {
-          await axios.post('https://ng.tradeautopilot.ai/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
-          console.log('Usuário registrado na API como não sendo mais primeiro acesso, mas mantendo estado local para exibir o modal');
-          // Não definimos isFirstAccess.value = false aqui para manter o modal visível
-        } catch (error) {
-          console.error('Erro ao registrar automaticamente o primeiro acesso:', error);
-        }
-        
-        startCheckingBalance();
-        startFakeNotifications();
-      } else if (isFirstAccess.value && balance.value > 0) {
-        // Condição 2: Primeiro acesso + saldo positivo (mostra modal que pode ser fechado)
-        console.log('Primeiro acesso com saldo positivo: permitindo acesso e mostrando modal promocional');
-        accessBlocked.value = false; // Não bloqueia o acesso
-        showBonusModal.value = true; // Mostra o modal que pode ser fechado
-        showFirstAccessModal.value = false; // Não mostra o modal de primeiro acesso
-        
-        // Registra automaticamente que o usuário já não é mais primeiro acesso
-        try {
-          await axios.post('https://ng.tradeautopilot.ai/api/register-first-access', { email: userEmail.value, firstName: first_name, lastName: last_name, userId: userid });
-          console.log('Usuário registrado automaticamente como não sendo mais primeiro acesso');
-          // Não atualizamos isFirstAccess.value aqui para evitar que o modal desapareça
-        } catch (error) {
-          console.error('Erro ao registrar automaticamente o primeiro acesso:', error);
-        }
-      } else if (!isFirstAccess.value && balance.value <= 0) {
-        // Condição 3: Não é primeiro acesso + saldo 0 (bloqueia acesso)
-        console.log('Acesso bloqueado: saldo zerado e não é primeiro acesso');
-        accessBlocked.value = true; // Bloqueia o acesso
-        showBonusModal.value = false; // Não mostra nenhum modal promocional
-        showFirstAccessModal.value = false; // Não mostra o modal de primeiro acesso
-        
-        // Verifica se deve mostrar o modal de bônus duplo (se não estiver bloqueado)
-        if (!accessBlocked.value && !isTradeInProgress.value && !isWaitingForEntryTime.value) {
+      
+      if (!isFirstAccess.value && balance.value <= 0) {
+        accessBlocked.value = true;
+        if (!isTradeInProgress.value && !isWaitingForEntryTime.value) {
           showBonusDoubleModal.value = true;
         }
-        
         startCheckingBalance();
         startFakeNotifications();
       } else if (!isFirstAccess.value && balance.value > 0 && balance.value < LOW_BALANCE_THRESHOLD) {
-        // Condição 4: Não é primeiro acesso + saldo baixo (menos de R$20)
         console.log('Saldo baixo: exibindo modal de bônus triplo');
         accessBlocked.value = false;
-        showBonusModal.value = false;
-        showFirstAccessModal.value = false;
-        
-        // Mostra o modal de bônus triplo (se não estiver em operação)
         if (!isTradeInProgress.value && !isWaitingForEntryTime.value) {
           showBonusTripleModal.value = true;
         }
       } else {
-        // Caso padrão: Não é primeiro acesso + saldo positivo adequado
-        console.log('Acesso liberado: não é primeiro acesso e tem saldo positivo');
+        console.log('Acesso liberado');
         accessBlocked.value = false;
-        showBonusModal.value = false;
-        showFirstAccessModal.value = false;
       }
     } else {
       showToast('Erro ao verificar suas informações de acesso.', 'error');
@@ -595,9 +589,117 @@ const verifyUserAccess = async () => {
   }
 };
 
-// --- Funções para lidar com os novos modais de bônus ---
+const showNewUserOffers = async () => {
+  await updateBalance();
+  const userStr = localStorage.getItem('user');
+  if (!userStr) return;
+  const user = JSON.parse(userStr);
+  const { firstName: first_name, lastName: last_name, userId: userid } = user;
 
-// Formata o tempo do contador regressivo
+  if (balance.value <= 0) {
+    console.log('Post-tutorial com saldo zero: mostrando modal do cupom');
+    showFirstAccessModal.value = true;
+  } else {
+    console.log('Post-tutorial com saldo positivo: mostrando modal de bônus');
+    showBonusModal.value = true;
+  }
+
+  try {
+    // Verifica se a função existe e, caso contrário, obtém o slug a partir da URL
+    
+    
+    const slug = window.getAppSlug();
+    console.log('Registrando primeiro acesso na API com slug:', slug);
+    await axios.post('https://ng.tradeautopilot.ai/api/register-first-access', { 
+      email: userEmail.value, 
+      firstName: first_name, 
+      lastName: last_name, 
+      userId: userid, 
+      slug 
+    });
+    console.log('Usuário registrado na API como não sendo mais primeiro acesso. Slug:', slug);
+  } catch (error) {
+    console.error('Erro ao registrar o primeiro acesso:', error);
+  }
+};
+
+// --- Funções do Tutorial ---
+const startTutorial = () => {
+  showTutorial.value = true
+  nextTick(() => {
+    updateTutorialStepUI();
+  });
+}
+
+const updateTutorialStepUI = () => {
+  document.querySelectorAll('.tutorial-functional-highlight, .tutorial-visual-highlight').forEach(el => {
+    el.classList.remove('tutorial-functional-highlight', 'tutorial-visual-highlight');
+  });
+
+  const step = tutorialSteps[tutorialStep.value];
+  const functionalElement = document.querySelector(step.functionalHighlightTarget);
+  const visualElement = document.querySelector(step.visualHighlightTarget);
+  const tooltipElement = document.querySelector(step.tooltipTarget);
+
+  if (functionalElement && visualElement && tooltipElement) {
+    functionalElement.classList.add('tutorial-functional-highlight');
+    visualElement.classList.add('tutorial-visual-highlight');
+    positionTooltip(tooltipElement);
+  }
+};
+
+const positionTooltip = (targetElement) => {
+  if (!tooltip.value || !targetElement) return;
+
+  const targetRect = targetElement.getBoundingClientRect();
+  const tooltipRect = tooltip.value.getBoundingClientRect();
+  const step = tutorialSteps[tutorialStep.value];
+  let top = 0, left = 0;
+  const offset = 15;
+
+  switch (step.position) {
+    case 'bottom':
+      top = targetRect.bottom + offset;
+      left = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+      break;
+    case 'top':
+      top = targetRect.top - tooltipRect.height - offset;
+      left = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+      break;
+  }
+
+  if (left < offset) left = offset;
+  if (left + tooltipRect.width > window.innerWidth - offset) left = window.innerWidth - tooltipRect.width - offset;
+  if (top < offset) top = offset;
+  if (top + tooltipRect.height > window.innerHeight - offset) top = window.innerHeight - tooltipRect.height - offset;
+
+  tooltipStyle.value = {
+    top: `${top}px`,
+    left: `${left}px`,
+    position: 'fixed'
+  };
+};
+
+const nextTutorialStep = () => {
+  if (tutorialStep.value < tutorialSteps.length - 1) {
+    tutorialStep.value++;
+    nextTick(() => {
+      updateTutorialStepUI();
+    });
+  }
+}
+
+const finishTutorial = async () => {
+  document.querySelectorAll('.tutorial-functional-highlight, .tutorial-visual-highlight').forEach(el => {
+    el.classList.remove('tutorial-functional-highlight', 'tutorial-visual-highlight');
+  });
+  showTutorial.value = false;
+  isFirstAccess.value = false;
+  await showNewUserOffers();
+};
+
+
+// --- Funções para lidar com os novos modais de bônus ---
 const formatCountdownTime = (totalSeconds) => {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -606,41 +708,30 @@ const formatCountdownTime = (totalSeconds) => {
   return `${hours > 0 ? `${String(hours).padStart(2, '0')}:` : ''}${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-// Inicia o contador regressivo de 30 minutos para o bônus
 const startBonusCountdown = () => {
-  // Limpa o intervalo anterior se existir
   if (bonusCountdownInterval) clearInterval(bonusCountdownInterval);
-  
-  // Define o tempo inicial (30 minutos = 1800 segundos)
   let timeLeft = 1800;
-  
-  // Atualiza o tempo formatado
   countdownTime.value = formatCountdownTime(timeLeft);
   
-  // Cria um novo intervalo
   bonusCountdownInterval = setInterval(() => {
     timeLeft--;
     
     if (timeLeft <= 0) {
-      // Tempo acabou, limpa o intervalo e fecha os modais
       clearInterval(bonusCountdownInterval);
       showBonusRedemptionTripleModal.value = false;
       showBonusRedemptionDoubleModal.value = false;
     } else {
-      // Atualiza o tempo formatado
       countdownTime.value = formatCountdownTime(timeLeft);
     }
   }, 1000);
 };
 
-// Função para exibir o modal de resgate do bônus triplo
 const showBonusTripleRedemption = () => {
   showBonusTripleModal.value = false;
   showBonusRedemptionTripleModal.value = true;
   startBonusCountdown();
 };
 
-// Função para exibir o modal de resgate do bônus duplo
 const showBonusDoubleRedemption = () => {
   showBonusDoubleModal.value = false;
   showBonusRedemptionDoubleModal.value = true;
@@ -648,34 +739,13 @@ const showBonusDoubleRedemption = () => {
 };
 
 const redirectToDeposit = async () => {
-  // Fechar os modais de bônus se estiverem abertos
-  if (showBonusModal.value) {
-    showBonusModal.value = false;
-  }
+  showFirstAccessModal.value = false;
+  showBonusModal.value = false;
+  accessBlocked.value = true;
+  startCheckingBalance();
+  startFakeNotifications();
   
-  if (showBonusRedemptionTripleModal.value) {
-    showBonusRedemptionTripleModal.value = false;
-    clearInterval(bonusCountdownInterval);
-  }
-  
-  if (showBonusRedemptionDoubleModal.value) {
-    showBonusRedemptionDoubleModal.value = false;
-    clearInterval(bonusCountdownInterval);
-  }
-
-  if (isFirstAccess.value && balance.value <= 0) {
-    // Quando for o modal de primeiro acesso com saldo zero,
-    // ocultamos o modal de primeiro acesso e mostramos a animação de verificação
-    showFirstAccessModal.value = false;
-    accessBlocked.value = true;
-    startCheckingBalance();
-    startFakeNotifications();
-  }
-  
-  // Exibe uma mensagem de sucesso
   showToast('Conta pré-ativada! Complete o depósito para começar.', 'success');
-  
-  // Redireciona para a página de depósito em uma nova aba
   window.open('https://trade.polariumbroker.com/traderoom/', '_blank');
 };
 
@@ -689,8 +759,8 @@ const startCheckingBalance = () => {
     
     if (balance.value > 0) {
       console.log('Saldo positivo detectado, liberando acesso');
-      accessBlocked.value = false;
-      showFirstAccessModal.value = false; // Garantir que o modal de primeiro acesso não apareça
+      accessBlocked.value = false; 
+      showFirstAccessModal.value = false;
       stopCheckingBalance();
       stopFakeNotifications();
       
@@ -700,7 +770,7 @@ const startCheckingBalance = () => {
         text: 'Seu depósito foi recebido. Acesso à IA liberado!',
         background: 'linear-gradient(135deg, rgba(26,31,53,0.98) 80%, rgba(99,102,241,0.13) 100%)',
         color: '#fff',
-        confirmButtonColor: '#3B82F6',
+        confirmButtonColor: primaryColor.value,
       });
     }
   }, 5000);
@@ -725,9 +795,9 @@ const startFakeNotifications = () => {
       let message = '';
       if (isProfit) {
           const notification = profitNotifications[Math.floor(Math.random() * profitNotifications.length)];
-          message = `<i class="fas fa-chart-line text-green-400 mr-2"></i> <strong>${notification.name}</strong> lucrou <strong>${formatCurrency(notification.amount)}</strong> no par ${notification.pair}`;
+          message = `<i class="fas fa-chart-line mr-2" style="color: #10b981"></i> <strong>${notification.name}</strong> lucrou <strong>${formatCurrency(notification.amount)}</strong> no par ${notification.pair}`;
       } else {
-          message = `<i class="fas fa-user-check text-blue-400 mr-2"></i> ${activationNotifications[Math.floor(Math.random() * activationNotifications.length)]}`;
+          message = `<i class="fas fa-user-check mr-2" style="color: ${primaryColor.value}"></i> ${activationNotifications[Math.floor(Math.random() * activationNotifications.length)]}`;
       }
       
       const notificationElement = document.createElement('div');
@@ -751,11 +821,33 @@ const stopFakeNotifications = () => {
   }
 }
 
+// Função para carregar configurações de cores da API
+const loadSettings = async () => {
+  try {
+    const slug = window.getAppSlug()
+    const response = await axios.get(`https://ng.tradeautopilot.ai/api/settings/${slug}`)
+    if (response.data.success) {
+      const settings = response.data.settings
+      primaryColor.value = settings.primaryColor || '#3b82f6'
+      backgroundColor.value = settings.backgroundColor || '#0f172a'
+      
+      applyCustomColors()
+    }
+  } catch (error) {
+    console.error('Erro ao carregar configurações:', error)
+  }
+}
+
+const applyCustomColors = () => {
+  const root = document.documentElement
+  root.style.setProperty('--primary-color', primaryColor.value)
+  root.style.setProperty('--background-color', backgroundColor.value)
+}
+
 
 // --- Funções Utilitárias e de Lógica de Negociação (COMPLETAS) ---
-
 function showToast(title, icon = 'info', timer = 4000) {
-  if (isTradeInProgress.value && timer !== undefined) {
+  if (isTradeInProgress.value && timer !== undefined && !showTutorial.value) {
     console.log(title);
     return;
   }
@@ -799,6 +891,11 @@ function showTradeNotification(message, pair) {
 }
 
 const handleGenerateSignal = async () => {
+  if (showTutorial.value) {
+    handleTutorialSignal()
+    return
+  }
+
   if (isTradeInProgress.value) {
     showToast('Não é possível gerar um novo sinal enquanto uma operação está em andamento.', 'warning', 6000);
     return;
@@ -810,6 +907,19 @@ const handleGenerateSignal = async () => {
 
   if (balance.value <= 0) {
     accessBlocked.value = true;
+    return;
+  }
+  if (
+    (currency.value === 'USD' && balance.value < 10) ||
+    (currency.value === 'BRL' && balance.value < 60)
+  ) {
+    showToast(
+      currency.value === 'USD'
+        ? 'Saldo insuficiente. Deposite pelo menos $10,00 para operar.'
+        : 'Saldo insuficiente. Deposite pelo menos R$60,00 para operar.',
+      'warning',
+      6000
+    );
     return;
   }
 
@@ -848,6 +958,25 @@ const handleGenerateSignal = async () => {
     isGeneratingSignal.value = false;
   }
 };
+
+const handleTutorialSignal = async () => {
+  isGeneratingSignal.value = true
+  showToast('Analisando o mercado em tempo real...', 'info')
+
+  await new Promise(resolve => setTimeout(resolve, 2500))
+
+  isGeneratingSignal.value = false
+  showToast('Sinal Encontrado!', 'success')
+
+  const fakeSignal = {
+    pair: selectedAsset.value,
+    timeframe: selectedTime.value * 60,
+    entry_time: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+    trade_action: Math.random() > 0.5 ? 'BUY' : 'SELL'
+  }
+
+  showSignalConfirmationPopup(fakeSignal)
+}
 
 const showSignalConfirmationPopup = (signal) => {
   const { pair, timeframe, entry_time, trade_action } = signal;
@@ -891,6 +1020,10 @@ const showSignalConfirmationPopup = (signal) => {
     }
   }).then(async (result) => {
     if (result.isConfirmed) {
+      if (showTutorial.value) {
+        executeTutorialTrade()
+        return
+      }
       let entryDate = new Date(entry_time);
       entryDate.setHours(entryDate.getHours() - 3); 
       entryDate.setSeconds(0, 0); 
@@ -948,6 +1081,47 @@ const showSignalConfirmationPopup = (signal) => {
   });
 };
 
+const executeTutorialTrade = async () => {
+  isTradeInProgress.value = true;
+  showTradeNotification(`Iniciando operação em ${selectedAsset.value}...`, selectedAsset.value);
+
+  const simulatedWaitTime = selectedTime.value === 1 ? 5000 : 8000;
+
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  showTradeNotification('Aguardando resultado da ordem...', selectedAsset.value);
+  await new Promise(resolve => setTimeout(resolve, simulatedWaitTime));
+
+  const profit = fictionalBalance.value * 0.87;
+  fictionalBalance.value += profit;
+
+  showTutorial.value = false;
+  
+  await nextTick();
+
+  Swal.close();
+  showToast('Operação Finalizada!', 'success', 5000);
+  
+  Swal.fire({
+    icon: 'success',
+    title: 'Você Venceu!',
+    html: `
+      <div class="text-white">
+        Parabéns, você lucrou 
+        <strong class="text-green-400">${formatCurrency(profit)}</strong> 
+        nesta operação!
+        <p class="text-gray-300 mt-4">Viu como é fácil? Agora é só ativar sua conta para começar a lucrar de verdade.</p>
+      </div>
+    `,
+    background: 'linear-gradient(135deg, rgba(26,31,53,0.98) 80%, rgba(99,102,241,0.13) 100%)',
+    color: '#fff',
+    confirmButtonColor: '#3B82F6',
+    confirmButtonText: 'Continuar',
+  }).then(() => {
+    isTradeInProgress.value = false;
+    finishTutorial();
+  });
+};
+
 const executeTradeFromSignal = async (signalData) => {
   const { pair, direction, period } = signalData;
   isTradeInProgress.value = true;
@@ -966,9 +1140,13 @@ const executeTradeFromSignal = async (signalData) => {
   const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    if (balance.value <= 0 || balance.value < operationValue) {
+    if (balance.value <= 0) {
       accessBlocked.value = true;
 
+      finalResult = { status: 'error', message: 'Saldo insuficiente.' }; break;
+    }
+
+    if (balance.value < operationValue){
       finalResult = { status: 'error', message: 'Saldo insuficiente.' }; break;
     }
 
@@ -984,8 +1162,30 @@ const executeTradeFromSignal = async (signalData) => {
       }
 
       showTradeNotification('Aguardando resultado da ordem...', pair);
-      const orderStatus = await checkOrderStatus(orderResult.order.id, uniqueId);
+      // Se o período for 300 segundos (5 minutos), aguarde até o próximo múltiplo de 5 minutos menos 1 minuto e 30 segundos
+      if (period === 300) {
+        const now = await getServerTime();
+        const minutes = now.getMinutes();
 
+        // Próximo múltiplo de 5 minutos
+        const nextFive = Math.ceil((minutes + 1) / 5) * 5;
+        let target = new Date(now);
+        target.setMinutes(nextFive, 0, 0);
+        // Subtrai 1 minuto e 30 segundos
+        
+        target.setSeconds(target.getSeconds() - 30);
+
+        let msToWait = target.getTime() - now.getTime();
+        if (msToWait > 0) {
+            const targetTime = new Date(Date.now() + msToWait);
+            const formattedTime = `${Math.floor(msToWait / 60000)}m ${Math.floor((msToWait % 60000) / 1000)}s`;
+            const formattedHour = targetTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            showTradeNotification(`Aguardando o próximo ciclo de 5 minutos... (${formattedTime})<br>Horário de entrada: <strong>${formattedHour}</strong>`, pair);
+          await new Promise(resolve => setTimeout(resolve, msToWait));
+        }
+      }
+      const orderStatus = await checkOrderStatus(orderResult.order.id, uniqueId);
+      
       if (!orderStatus || !orderStatus.status) {
         throw new Error('Erro ao verificar status da ordem.');
       }
@@ -1019,7 +1219,6 @@ const executeTradeFromSignal = async (signalData) => {
   initialBalance.value = null;
   await updateBalance();
   
-  // Verificar se o saldo está zerado e bloquear acesso imediatamente
   if (balance.value === 0 && !isFirstAccess.value) {
     console.log('Operação finalizada com saldo zero: bloqueando acesso');
     accessBlocked.value = true;
@@ -1028,7 +1227,6 @@ const executeTradeFromSignal = async (signalData) => {
     showBonusTripleModal.value = false;
     showBonusRedemptionTripleModal.value = false;
   } 
-  // Se o saldo ainda é positivo mas está baixo
   else if (balance.value > 0 && balance.value < LOW_BALANCE_THRESHOLD && !isFirstAccess.value) {
     console.log('Operação finalizada com saldo baixo: exibindo modal de bônus triplo');
     showBonusTripleModal.value = true;
@@ -1066,14 +1264,15 @@ const formatCurrency = (value) => {
   
   return new Intl.NumberFormat('pt-BR', { 
     style: 'currency', 
-    currency: 'BRL',
+    currency: currency.value,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(value);
 };
 
 const switchAccount = async () => {
-  accountType.value = accountType.value === 'demo' ? 'real' : 'demo'
+  //accountType.value = accountType.value === 'demo' ? 'real' : 'demo'
+  accountType.value = 'real';
   await updateBalance()
   await updateAccountGrowthData()
 };
@@ -1130,7 +1329,7 @@ const showTransactionHistory = () => {
           </table>
         </div>`,
       background: 'linear-gradient(135deg, rgba(26,31,53,0.98) 80%, rgba(99,102,241,0.13) 100%)',
-      confirmButtonColor: '#6366F1',
+      confirmButtonColor: primaryColor.value,
       confirmButtonText: `<span style='font-weight:600;'>OK</span>`,
       width: '90vw',
       customClass: {
@@ -1226,7 +1425,6 @@ const startSdk = async () => {
           userDisplayName.value = user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1);
           console.log('Nome de usuário carregado do localStorage:', userDisplayName.value);
           
-          // Notificar outros componentes sobre a atualização do nome de usuário
           window.dispatchEvent(new CustomEvent('app:user-name-updated', {
             detail: { name: userDisplayName.value }
           }));
@@ -1244,7 +1442,6 @@ const startSdk = async () => {
       try {
         const response = await axios.post('/api/sdk/start', { email, password });
         if (response.data && response.data.data) {
-          // Salvar objeto de usuário completo
           localStorage.setItem("user", JSON.stringify({
             firstName: response.data.data.firstName || 'Usuário(a)',
             email: email
@@ -1255,7 +1452,6 @@ const startSdk = async () => {
           userDisplayName.value = response.data.data.firstName.charAt(0).toUpperCase() + response.data.data.firstName.slice(1) || 'Usuário(a)';
           console.log('Nome de usuário obtido via API:', userDisplayName.value);
           
-          // Notificar outros componentes sobre a atualização do nome de usuário
           window.dispatchEvent(new CustomEvent('app:user-name-updated', {
             detail: { name: userDisplayName.value }
           }));
@@ -1361,55 +1557,37 @@ const updateBalance = async () => {
   try {
     const data = await getAccountBalance();
     const account = data.balances.find(b => b.type === accountType.value);
-    const previousBalance = balance.value;
+    currency.value = account.currency;
     balance.value = account ? account.amount : 0;
     
-    // Quando o saldo chega a zero e não é primeiro acesso, bloqueia o acesso imediatamente
     if (balance.value === 0 && !isFirstAccess.value) {
-      // Se não for primeiro acesso e saldo for zero, bloqueia o acesso
-      console.log('Saldo zero detectado: bloqueando acesso ao dashboard');
       accessBlocked.value = true;
-      
-      // Garante que os modais de bônus não são exibidos ao mesmo tempo
       showBonusTripleModal.value = false;
       showBonusRedemptionTripleModal.value = false;
-      
       return balance.value;
     } 
-    // Se o saldo for positivo, libera o acesso
     else if (balance.value > 0) {
       accessBlocked.value = false;
     }
     
-    // Verifica se é possível mostrar um modal de bônus neste momento
-    // Não mostra modais de bônus durante operações em andamento ou aguardando horário de entrada
-    const canShowBonusModal = !isFirstAccess.value && 
-                            !isTradeInProgress.value && 
-                            !isWaitingForEntryTime.value;
+    const canShowBonusModal = !isFirstAccess.value && !isTradeInProgress.value && !isWaitingForEntryTime.value;
     
-    // Verifica o saldo diretamente para determinar qual modal mostrar
     if (canShowBonusModal) {
       if (balance.value === 0) {
-        // Quando já está com acesso bloqueado, não mostra o modal de bônus duplo
         if (!accessBlocked.value) {
-          // Garante que o modal de bônus triplo não está visível
           showBonusTripleModal.value = false;
           showBonusRedemptionTripleModal.value = false;
           
-          // Só mostra o modal se não estiver já aberto
           if (!showBonusDoubleModal.value && !showBonusRedemptionDoubleModal.value) {
             console.log('Saldo zero detectado: exibindo modal de bônus duplo');
             showBonusDoubleModal.value = true;
           }
         }
       } 
-      // Se o saldo for baixo (menor que R$20) mas ainda positivo, mostra o modal de bônus triplo
       else if (balance.value > 0 && balance.value < LOW_BALANCE_THRESHOLD) {
-        // Garante que o modal de bônus duplo não está visível
         showBonusDoubleModal.value = false;
         showBonusRedemptionDoubleModal.value = false;
         
-        // Só mostra o modal se não estiver já aberto
         if (!showBonusTripleModal.value && !showBonusRedemptionTripleModal.value) {
           console.log('Saldo baixo detectado: exibindo modal de bônus triplo');
           showBonusTripleModal.value = true;
@@ -1421,7 +1599,6 @@ const updateBalance = async () => {
   } catch (e) { 
     console.error('Erro ao atualizar saldo:', e);
     balance.value = 0;
-    // Se ocorrer erro e o saldo ficar zerado, bloqueia o acesso
     if (!isFirstAccess.value) {
       accessBlocked.value = true;
     }
@@ -1457,15 +1634,16 @@ function loadUserSettings() {
 // --- Lifecycle Hooks ---
 onMounted(async () => {
   console.log('Dashboard montado, iniciando configuração...');
+    
+  
+  await loadSettings();
   
   loadUserSettings();
   await startSdk();
   
-  // Atualiza o saldo primeiro
   await updateBalance();
   console.log('Saldo inicial:', formatCurrency(balance.value));
   
-  // Depois verifica o acesso do usuário, que usa o saldo para determinar o estado
   await verifyUserAccess();
   
   await updateAccountGrowthData();
@@ -1482,6 +1660,7 @@ onMounted(async () => {
 
   await updateChart();
   chartUpdateInterval = setInterval(updateChart, 15000);
+  window.addEventListener('resize', updateTutorialStepUI);
   console.log('Dashboard configurado com sucesso');
 });
 
@@ -1489,15 +1668,16 @@ onUnmounted(() => {
   if (chartUpdateInterval) clearInterval(chartUpdateInterval);
   stopCheckingBalance();
   stopFakeNotifications();
+  window.removeEventListener('resize', updateTutorialStepUI);
   
-  // Limpa o intervalo do contador regressivo de bônus
   if (bonusCountdownInterval) clearInterval(bonusCountdownInterval);
 });
 
 watch(balance, (newBalance, oldBalance) => {
+  if (showTutorial.value) return;
+
   console.log(`Saldo alterado: ${formatCurrency(oldBalance)} -> ${formatCurrency(newBalance)}`);
   
-  // Se tiver saldo positivo e o acesso estiver bloqueado, libera
   if (newBalance > 0 && accessBlocked.value) {
     console.log('Saldo positivo detectado, liberando acesso bloqueado');
     accessBlocked.value = false;
@@ -1515,16 +1695,12 @@ watch(balance, (newBalance, oldBalance) => {
     });
   }
   
-  // Se o saldo ficou zerado e não é primeiro acesso, bloqueia o acesso
   if (newBalance === 0 && !isFirstAccess.value && oldBalance > 0) {
-    console.log('Saldo zerado detectado, bloqueando acesso');
+    console.log('Saldo zerado detectado');
     accessBlocked.value = true;
   }
   
-  // Verificar a necessidade de mostrar modais de bônus quando o saldo muda
-  // mas não durante operações ou no primeiro acesso
   if (!isTradeInProgress.value && !isWaitingForEntryTime.value && !isFirstAccess.value) {
-    // Se o saldo caiu para zero, mostrar o modal de bônus duplo
     if (oldBalance > 0 && newBalance === 0) {
       console.log('Saldo zero detectado no watch: exibindo modal de bônus duplo');
       showBonusDoubleModal.value = true;
@@ -1532,7 +1708,6 @@ watch(balance, (newBalance, oldBalance) => {
       showBonusRedemptionTripleModal.value = false;
       showBonusRedemptionDoubleModal.value = false;
     }
-    // Se o saldo ficou baixo (menos de R$20), mostrar o modal de bônus triplo
     else if (newBalance > 0 && newBalance < LOW_BALANCE_THRESHOLD && 
             (oldBalance >= LOW_BALANCE_THRESHOLD || oldBalance === 0)) {
       console.log('Saldo baixo detectado no watch: exibindo modal de bônus triplo');
@@ -1553,11 +1728,30 @@ watch([selectedAsset, selectedTime], async () => {
 
 </script>
 
-<style scoped>
-/* Glass Card Effect */
+<style>
+/* Estilo para destacar o elemento do tutorial */
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+.tutorial-functional-highlight {
+  position: relative;
+  z-index: 210; /* Acima do overlay para ser funcional */
+}
+
+.tutorial-visual-highlight {
+  position: relative;
+  z-index: 210; /* Acima do overlay para ser funcional */
+  border-radius: 0.75rem;
+  animation: pulse-glow 2s infinite;
+}
+
+
 .glass-card {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.4));
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--background-color) 80%, #1e293b), color-mix(in srgb, var(--background-color) 40%, #334155));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 20%, transparent);
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
@@ -1569,21 +1763,24 @@ watch([selectedAsset, selectedTime], async () => {
   transition: all 0.2s;
 }
 .tab-button:hover {
-  background-color: rgba(55, 65, 81, 0.5);
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
 }
 .tab-button.active {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #3B82F6;
+  background-color: color-mix(in srgb, var(--primary-color) 20%, transparent);
+  color: var(--primary-color);
 }
 
-/* Remover fundo azul dos textos azuis */
-.text-blue-400 { background: none !important; }
+/* Aplicar cor primária aos textos azuis */
+.text-blue-400 { 
+  color: var(--primary-color) !important; 
+  background: none !important; 
+}
 
 /* Remover fundo azul dos botões e textos verdes customizados */
 .text-green-400, .bg-gradient-to-r.from-green-500 {
-  color: #3B82F6 !important;
+  color: var(--primary-color) !important;
   background: none !important;
-  border-color: #3B82F6 !important;
+  border-color: var(--primary-color) !important;
 }
 
 /* Animações para as notificações falsas */

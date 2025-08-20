@@ -22,6 +22,20 @@ export default {
   created() {
     this.$router.beforeEach((to, from, next) => {
       this.isLoading = true;
+      
+      // Preservar o slug nas navegações, se existir
+      const fromSlug = from.params.slug;
+      const toSlug = to.params.slug;
+      
+      // Se estamos navegando de uma rota com slug para uma sem slug, 
+      // e a rota de destino tem uma versão com slug, redirecionar para manter o slug
+      if (fromSlug && !toSlug && !['/', '/login'].includes(to.path)) {
+        const baseRouteName = to.path.split('/').pop();
+        if (['dashboard', 'settings', 'ranking', 'tutorials', 'links'].includes(baseRouteName)) {
+          return next(`/${fromSlug}/${baseRouteName}`);
+        }
+      }
+      
       next();
     });
     

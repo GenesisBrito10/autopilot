@@ -7,34 +7,36 @@ import Tutorials from '../views/Tutorials.vue'
 import Settings from '../views/Settings.vue'
 import Ranking from '../views/Ranking.vue'
 import Links from '../views/Links.vue'
+import TraderNotFound from '../views/TraderNotFound.vue'
 
 const routes = [
   // Rotas padrão (sem slug)
-  { path: '/', redirect: '/login' },
-  { path: '/login', component: Login },
+  // Redirecionar para a página de erro quando não há slug
+  { path: '/', component: TraderNotFound },
+  { path: '/login', component: TraderNotFound },
   { 
     path: '/dashboard',
-    component: Dashboard,
+    component: TraderNotFound,
     meta: { requiresAuth: false }
   },
   {
     path: '/tutorials',
-    component: Tutorials,
+    component: TraderNotFound,
     meta: { requiresAuth: false }
   },
   {
     path: '/settings',
-    component: Settings,
+    component: TraderNotFound,
     meta: { requiresAuth: false }
   },
   {
     path: '/ranking',
-    component: Ranking,
+    component: TraderNotFound,
     meta: { requiresAuth: false }
   },
   {
     path: '/links',
-    component: Links,
+    component: TraderNotFound,
     meta: { requiresAuth: false }
   },
 

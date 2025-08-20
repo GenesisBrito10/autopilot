@@ -36,6 +36,9 @@ export default {
         }
       }
       
+      // Se estamos acessando uma rota sem slug diretamente, não redirecionamos
+      // Isso permitirá que o componente TraderNotFound seja exibido
+      
       next();
     });
     

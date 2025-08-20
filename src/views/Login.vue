@@ -59,13 +59,26 @@
               <i class="fas fa-lock mr-2 text-xs" :style="`color: ${primaryColor}`"></i>
               SENHA
             </label>
-            <input 
-              type="password" 
-              v-model="password"
-              :placeholder="'••••••••'" 
-              class="w-full text-white px-4 py-3 rounded-lg focus:outline-none transition-all duration-300 placeholder-gray-600 text-sm dynamic-input"
-              required
-            >
+            <div class="relative">
+              <input 
+                :type="showPassword ? 'text' : 'password'" 
+                v-model="password"
+                :placeholder="'••••••••'" 
+                class="w-full text-white px-4 py-3 rounded-lg focus:outline-none transition-all duration-300 placeholder-gray-600 text-sm dynamic-input"
+                required
+              >
+              <button 
+                type="button" 
+                class="absolute inset-y-0 right-0 pr-3 flex items-center" 
+                @click="showPassword = !showPassword"
+              >
+                <i 
+                  :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" 
+                  class="text-gray-400 hover:text-gray-200 transition-colors text-sm"
+                  :style="`color: ${primaryColor}`"
+                ></i>
+              </button>
+            </div>
           </div>
           
           <!-- Forgot Password -->
@@ -193,13 +206,26 @@
                 <i class="fas fa-lock mr-2" :style="`color: ${primaryColor}`"></i>
                 SENHA
               </label>
-              <input 
-                type="password" 
-                v-model="password"
-                :placeholder="'••••••••'" 
-                class="w-full text-white px-4 py-3.5 rounded-lg focus:outline-none transition-all duration-300 placeholder-gray-600 dynamic-input"
-                required
-              >
+              <div class="relative">
+                <input 
+                  :type="showPassword ? 'text' : 'password'" 
+                  v-model="password"
+                  :placeholder="'••••••••'" 
+                  class="w-full text-white px-4 py-3.5 rounded-lg focus:outline-none transition-all duration-300 placeholder-gray-600 dynamic-input"
+                  required
+                >
+                <button 
+                  type="button" 
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center" 
+                  @click="showPassword = !showPassword"
+                >
+                  <i 
+                    :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" 
+                    class="text-gray-400 hover:text-gray-200 transition-colors"
+                    :style="`color: ${primaryColor}`"
+                  ></i>
+                </button>
+              </div>
             </div>
             
             <!-- Forgot Password -->
@@ -266,6 +292,7 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 const isLoading = ref(false)
+const showPassword = ref(false)
 const currentLanguage = ref(localStorage.getItem('language') || 'pt')
 const isLanguageDropdownOpen = ref(false)
 

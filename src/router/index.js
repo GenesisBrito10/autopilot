@@ -10,6 +10,12 @@ import Links from '../views/Links.vue'
 import TraderNotFound from '../views/TraderNotFound.vue'
 
 const routes = [
+  // Rota específica para trader não encontrado
+  {
+    path: '/trader-not-found',
+    component: TraderNotFound
+  },
+  
   // Rotas padrão (sem slug)
   // Redirecionar para a página de erro quando não há slug
   { path: '/', component: TraderNotFound },

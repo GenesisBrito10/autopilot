@@ -191,6 +191,7 @@ import { useRouter } from 'vue-router'
 import defaultLogoUrl from '../assets/polarium.png'
 import { translations } from '@/locales'
 import axios from 'axios'
+import apiClient from '@/api'
 import Swal from 'sweetalert2'
 const router = useRouter()
 const isSidebarOpen = ref(false)
@@ -251,7 +252,7 @@ const loadSettings = async () => {
   try {
     // Obter o slug da URL usando a função global
     const slug = window.getAppSlug()
-    const response = await axios.get(`http://localhost:2006/api/settings/${slug}`)
+    const response = await apiClient.get(`/api/settings/${slug}`)
     if (response.data.success) {
       const settings = response.data.settings
       logoUrl.value = settings.logoUrl || defaultLogoUrl
@@ -264,6 +265,13 @@ const loadSettings = async () => {
     }
   } catch (error) {
     console.error('Erro ao carregar configurações:', error)
+    
+    // Se o erro for 404 (slug não encontrada), redirecionar para página de trader não encontrado
+    if (error.response && error.response.status === 404) {
+      console.warn('Slug não encontrada:', error.response.data.slug)
+      router.push('/trader-not-found')
+    }
+    
     // Usar configurações padrão em caso de erro
   }
 }

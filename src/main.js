@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import axios from 'axios'
+import apiClient from './api'
 // Importação de estilos
 import './index.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
@@ -24,6 +25,9 @@ import 'sweetalert2/dist/sweetalert2.min.css'
 const app = createApp(App)
 axios.defaults.baseURL = 'https://backend-automatico.tipolariumbroker.com'
 //axios.defaults.baseURL = 'http://localhost:2003' // Use this for local development
+
+// Disponibiliza o cliente API globalmente
+app.config.globalProperties.$api = apiClient
 // Configurar Sweetalert2
 const options = {
     confirmButtonColor: '#2596BE',

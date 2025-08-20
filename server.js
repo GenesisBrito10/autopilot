@@ -189,13 +189,23 @@ app.post('/api/register', async (req, res) => {
 // Rota para obter configurações do sistema
 app.get('/api/settings/:slug?', async (req, res) => {
   try {
-    const slug = req.params.slug || 'default';
+    const slug = req.params.slug;
     let settings = await Settings.findOne({ slug });
     
-    // Se não existir configuração, criar uma padrão
+    // Se não existir configuração para esta slug
     if (!settings) {
-      settings = new Settings({ slug });
-      await settings.save();
+      // Se a slug não for 'default', retorna 404
+      
+        return res.status(404).json({
+          success: false,
+          message: 'Configuração não encontrada para este slug',
+          slug: slug
+        });
+      
+      
+      // Se for 'default', tenta criar uma configuração padrão
+      // settings = new Settings({ slug: 'default' });
+      // await settings.save();
     }
     
     res.json({
@@ -220,7 +230,7 @@ app.get('/api/settings/:slug?', async (req, res) => {
 // Rota para atualizar configurações do sistema
 app.post('/api/settings/:slug?', async (req, res) => {
   try {
-    const slug = req.params.slug || 'default';
+    const slug = req.params.slug ;
     const { logoUrl, primaryColor, backgroundColor, registerLink, lessons, socialLinks, appName } = req.body;
     
     let settings = await Settings.findOne({ slug });

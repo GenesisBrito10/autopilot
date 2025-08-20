@@ -17,24 +17,46 @@
       </div>
     </div>
 
+    <div v-if="showFakeAnalysis" class="fixed inset-0 z-[230] flex items-center justify-center pointer-events-none">
+        <div class="absolute w-full h-full bg-slate-900/50"></div>
+        <div class="glass-card p-8 rounded-2xl text-center">
+            <div class="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" :style="`border-color: ${primaryColor}; border-top-color: transparent`"></div>
+            <p class="text-white font-semibold text-lg">Analisando Padrões...</p>
+            <p class="text-gray-400">Aguarde, nossa IA está buscando a melhor entrada.</p>
+        </div>
+    </div>
+
+    <div v-if="showProfitAnimation" class="fixed z-[240] pointer-events-none" :style="profitAnimationPosition">
+        <div id="profit-animation-card" class="flex flex-col items-center gap-2 glass-card p-4 rounded-2xl shadow-2xl animate-fade-in-pop">
+            <div class="flex items-center gap-2">
+                <div class="flex -space-x-2">
+                    <img :src="getCurrencyFlag(selectedAsset, 0)" class="w-6 h-6 rounded-full border-2 border-slate-700">
+                    <img :src="getCurrencyFlag(selectedAsset, 1)" class="w-6 h-6 rounded-full border-2 border-slate-700">
+                </div>
+                <span class="text-white text-md font-bold">{{ selectedAsset }} (OTC)</span>
+            </div>
+            <p class="text-green-400 text-xl font-bold">+{{ formatCurrency(tutorialProfit) }}</p>
+        </div>
+    </div>
+    
     <div v-if="!showTutorial && accessBlocked && !showFirstAccessModal" class="fixed inset-0 bg-slate-900/95 z-[101] flex items-center justify-center">
       <div class="glass-card p-8 rounded-2xl max-w-md w-full mx-4">
-      <div class="text-center">
-        <i class="fas fa-lock text-red-400 text-4xl mb-4"></i>
-        <h3 class="text-xl font-bold text-white mb-2">Acesso Bloqueado</h3>
-        
-        <div class="mb-4">
-        <div class="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" :style="`border-color: ${primaryColor}; border-top-color: transparent`"></div>
-        <p class="text-gray-300 mb-2">Aguardando depósito inicial...</p>
-        <p class="text-red-400 font-semibold mb-4">Acesso a IA desativado por falta de saldo.</p>
+        <div class="text-center">
+          <i class="fas fa-lock text-red-400 text-4xl mb-4"></i>
+          <h3 class="text-xl font-bold text-white mb-2">Acesso Bloqueado</h3>
+          
+          <div class="mb-4">
+            <div class="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" :style="`border-color: ${primaryColor}; border-top-color: transparent`"></div>
+            <p class="text-gray-300 mb-2">Aguardando depósito inicial...</p>
+            <p class="text-red-400 font-semibold mb-4">Acesso a IA desativado por falta de saldo.</p>
+          </div>
+          
+          <button @click="redirectToDeposit" 
+            class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
+            <i class="fas fa-wallet"></i>
+            DEPOSITAR AGORA E ATIVAR MINHA CONTA
+          </button>
         </div>
-        
-        <button @click="redirectToDeposit" 
-        class="w-full text-white font-semibold py-3.5 rounded-xl transform hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" :style="`background: linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${primaryColor} 80%, #fff 20%))`">
-        <i class="fas fa-wallet"></i>
-        DEPOSITAR AGORA E ATIVAR MINHA CONTA
-        </button>
-      </div>
       </div>
     </div>
     
@@ -174,7 +196,7 @@
     </div>
     
     <div class="min-h-screen" :style="`background-color: ${backgroundColor}`">
-      <div class="p-4 lg:p-6 max-w-7xl mx-auto">
+      <div v-if="!accessBlocked && !showFirstAccessModal" class="p-4 lg:p-6 max-w-7xl mx-auto">
         <div class="mb-8">
           <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div>
@@ -262,7 +284,7 @@
           </div>
 
           <div class="lg:col-span-2">
-            <div class="glass-card p-6 rounded-2xl h-full min-h-[500px]">
+            <div id="chart-container" class="glass-card p-6 rounded-2xl h-full min-h-[500px] relative">
               <div class="flex justify-between items-center mb-4">
                  <h3 class="text-lg font-bold text-white flex items-center gap-2">
                   <i class="fas fa-chart-line" :style="`color: ${primaryColor}`"></i>
@@ -272,6 +294,7 @@
 
               <div class="bg-slate-900/50 rounded-xl">
                  <apexchart
+                   ref="chart"
                    v-if="chartSeries[0].data.length > 0"
                    type="candlestick"
                    height="400"
@@ -414,6 +437,7 @@ import Swal from 'sweetalert2'
 import AppLayout from '@/components/AppLayout.vue'
 import Apexchart from 'vue3-apexcharts'
 import axios from 'axios'
+import apiClient from '@/api'
 const router = useRouter()
 
 // --- Variáveis do Tutorial ---
@@ -422,6 +446,12 @@ const tutorialStep = ref(0)
 const fictionalBalance = ref(100)
 const tooltip = ref(null)
 const tooltipStyle = ref({})
+const showFakeAnalysis = ref(false)
+const showProfitAnimation = ref(false)
+const tutorialProfit = ref(0)
+const profitAnimationPosition = ref({})
+const chart = ref(null)
+let fakeChartInterval = null;
 const tutorialSteps = [
   {
     functionalHighlightTarget: '#asset-selection',
@@ -448,6 +478,7 @@ const tutorialSteps = [
     position: 'top'
   }
 ]
+
 
 // State variables
 const userDisplayName = ref('Usuário(a)')
@@ -519,11 +550,20 @@ const chartOptions = computed(() => ({
   grid: { borderColor: 'rgba(59, 130, 246, 0.1)', xaxis: { lines: { show: true } }, yaxis: { lines: { show: true } } },
   tooltip: { theme: 'dark', style: { fontSize: '12px', fontFamily: 'monospace' } },
   plotOptions: { candlestick: { colors: { upward: '#22c55e', downward: '#ef4444' }, wick: { useFillColor: true } } },
-  series: [{ data: chartSeries.value[0].data, }]
+  series: [{ data: chartSeries.value[0].data, }],
+  annotations: {}
 }));
 
 const updateChart = async () => {
   try {
+    // Usar candles falsos durante o tutorial
+    if (showTutorial.value) {
+      console.log('Usando candles falsos para o tutorial');
+      chartSeries.value = generateFakeCandles();
+      return;
+    }
+    
+    // Usar dados reais fora do tutorial
     const candleData = await getCandles(selectedAsset.value, selectedTime.value * 60);
     const candles = candleData.results;
 
@@ -541,14 +581,14 @@ const updateChart = async () => {
   }
 };
 
-// --- Funções de verificação de acesso e saldo (LÓGICA CORRIGIDA) ---
+// --- Funções de verificação de acesso e saldo ---
 const verifyUserAccess = async () => {
   if (!userEmail.value) {
     console.error('Email do usuário não encontrado para verificação.');
     return;
   }
   try {
-    const { data } = await axios.post('https://ng.tradeautopilot.ai/api/verify-user', { email: userEmail.value });
+    const { data } = await apiClient.post('/api/verify-user', { email: userEmail.value });
     if (data.success) {
       isFirstAccess.value = data.user.isFirstAccess;
 
@@ -591,6 +631,8 @@ const verifyUserAccess = async () => {
 
 const showNewUserOffers = async () => {
   await updateBalance();
+  await updateChart();
+  chartUpdateInterval = setInterval(updateChart, 15000);
   const userStr = localStorage.getItem('user');
   if (!userStr) return;
   const user = JSON.parse(userStr);
@@ -605,12 +647,9 @@ const showNewUserOffers = async () => {
   }
 
   try {
-    // Verifica se a função existe e, caso contrário, obtém o slug a partir da URL
-    
-    
     const slug = window.getAppSlug();
     console.log('Registrando primeiro acesso na API com slug:', slug);
-    await axios.post('https://ng.tradeautopilot.ai/api/register-first-access', { 
+    await apiClient.post('/api/register-first-access', { 
       email: userEmail.value, 
       firstName: first_name, 
       lastName: last_name, 
@@ -626,6 +665,18 @@ const showNewUserOffers = async () => {
 // --- Funções do Tutorial ---
 const startTutorial = () => {
   showTutorial.value = true
+  
+  // Inicializar o gráfico com candles falsos
+  updateChart();
+  
+  // Configurar atualização contínua dos candles falsos durante o tutorial
+  if (chartUpdateInterval) clearInterval(chartUpdateInterval);
+  chartUpdateInterval = setInterval(() => {
+    if (showTutorial.value) {
+      chartSeries.value = generateFakeCandles();
+    }
+  }, 15000);
+  
   nextTick(() => {
     updateTutorialStepUI();
   });
@@ -693,11 +744,39 @@ const finishTutorial = async () => {
   document.querySelectorAll('.tutorial-functional-highlight, .tutorial-visual-highlight').forEach(el => {
     el.classList.remove('tutorial-functional-highlight', 'tutorial-visual-highlight');
   });
+  
   showTutorial.value = false;
   isFirstAccess.value = false;
+  
+  // Limpar o intervalo anterior de atualização do gráfico
+  if (chartUpdateInterval) {
+    clearInterval(chartUpdateInterval);
+    chartUpdateInterval = null;
+  }
+  
+  // Iniciar a atualização com dados reais
+  
+  
   await showNewUserOffers();
 };
 
+const generateFakeCandles = () => {
+    let candles = [];
+    let lastClose = 1.05000;
+    let time = new Date();
+    time.setMinutes(time.getMinutes() - 40);
+
+    for (let i = 0; i < 40; i++) {
+        const open = lastClose;
+        const close = open + (Math.random() - 0.48) * 0.0005;
+        const high = Math.max(open, close) + Math.random() * 0.0002;
+        const low = Math.min(open, close) - Math.random() * 0.0002;
+        candles.push({ x: time.getTime(), y: [open, high, low, close] });
+        lastClose = close;
+        time.setMinutes(time.getMinutes() + 1);
+    }
+    return [{ data: candles }];
+}
 
 // --- Funções para lidar com os novos modais de bônus ---
 const formatCountdownTime = (totalSeconds) => {
@@ -824,17 +903,17 @@ const stopFakeNotifications = () => {
 // Função para carregar configurações de cores da API
 const loadSettings = async () => {
   try {
-    const slug = window.getAppSlug()
-    const response = await axios.get(`https://ng.tradeautopilot.ai/api/settings/${slug}`)
+    const slug = window.getAppSlug();
+    const response = await apiClient.get(`/api/settings/${slug}`);
     if (response.data.success) {
-      const settings = response.data.settings
-      primaryColor.value = settings.primaryColor || '#3b82f6'
-      backgroundColor.value = settings.backgroundColor || '#0f172a'
+      const settings = response.data.settings;
+      primaryColor.value = settings.primaryColor || '#3b82f6';
+      backgroundColor.value = settings.backgroundColor || '#0f172a';
       
-      applyCustomColors()
+      applyCustomColors();
     }
   } catch (error) {
-    console.error('Erro ao carregar configurações:', error)
+    console.error('Erro ao carregar configurações:', error);
   }
 }
 
@@ -960,22 +1039,22 @@ const handleGenerateSignal = async () => {
 };
 
 const handleTutorialSignal = async () => {
-  isGeneratingSignal.value = true
-  showToast('Analisando o mercado em tempo real...', 'info')
+  isGeneratingSignal.value = true;
+  showFakeAnalysis.value = true;
 
-  await new Promise(resolve => setTimeout(resolve, 2500))
+  await new Promise(resolve => setTimeout(resolve, 2500));
 
-  isGeneratingSignal.value = false
-  showToast('Sinal Encontrado!', 'success')
+  showFakeAnalysis.value = false;
+  isGeneratingSignal.value = false;
 
   const fakeSignal = {
     pair: selectedAsset.value,
     timeframe: selectedTime.value * 60,
-    entry_time: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-    trade_action: Math.random() > 0.5 ? 'BUY' : 'SELL'
-  }
+    entry_time: new Date().toISOString(),
+    trade_action: 'BUY'
+  };
 
-  showSignalConfirmationPopup(fakeSignal)
+  showSignalConfirmationPopup(fakeSignal);
 }
 
 const showSignalConfirmationPopup = (signal) => {
@@ -1083,44 +1162,106 @@ const showSignalConfirmationPopup = (signal) => {
 
 const executeTutorialTrade = async () => {
   isTradeInProgress.value = true;
-  showTradeNotification(`Iniciando operação em ${selectedAsset.value}...`, selectedAsset.value);
-
-  const simulatedWaitTime = selectedTime.value === 1 ? 5000 : 8000;
-
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  showTradeNotification('Aguardando resultado da ordem...', selectedAsset.value);
-  await new Promise(resolve => setTimeout(resolve, simulatedWaitTime));
-
-  const profit = fictionalBalance.value * 0.87;
-  fictionalBalance.value += profit;
-
-  showTutorial.value = false;
+  showTutorial.value = false; 
+  document.querySelectorAll('.tutorial-functional-highlight, .tutorial-visual-highlight').forEach(el => el.classList.remove('tutorial-functional-highlight', 'tutorial-visual-highlight'));
   
-  await nextTick();
+  // 1. Gerar e aplicar dados falsos
+  const fakeCandles = generateFakeCandles();
+  chartSeries.value = fakeCandles;
 
-  Swal.close();
-  showToast('Operação Finalizada!', 'success', 5000);
-  
-  Swal.fire({
-    icon: 'success',
-    title: 'Você Venceu!',
-    html: `
-      <div class="text-white">
-        Parabéns, você lucrou 
-        <strong class="text-green-400">${formatCurrency(profit)}</strong> 
-        nesta operação!
-        <p class="text-gray-300 mt-4">Viu como é fácil? Agora é só ativar sua conta para começar a lucrar de verdade.</p>
-      </div>
-    `,
-    background: 'linear-gradient(135deg, rgba(26,31,53,0.98) 80%, rgba(99,102,241,0.13) 100%)',
-    color: '#fff',
-    confirmButtonColor: '#3B82F6',
-    confirmButtonText: 'Continuar',
-  }).then(() => {
-    isTradeInProgress.value = false;
-    finishTutorial();
+  await nextTick(); // Espera o Vue re-renderizar o gráfico com os dados falsos
+
+  // 2. Marcar a linha de entrada
+  const entryCandle = fakeCandles[0].data[fakeCandles[0].data.length - 2];
+  const entryPrice = entryCandle.y[3]; // Preço de fechamento da penúltima vela
+  chart.value.addYaxisAnnotation({
+      y: entryPrice,
+      borderColor: '#FFFFFF',
+      strokeDashArray: 4,
+      label: {
+          borderColor: primaryColor.value,
+          style: { color: '#fff', background: primaryColor.value, },
+          text: 'Sua Entrada',
+      }
   });
+
+  // 3. Simular a última vela se movendo
+  const simulatedWaitTime = 5000;
+  const startTime = Date.now();
+  if(fakeChartInterval) clearInterval(fakeChartInterval);
+
+  fakeChartInterval = setInterval(() => {
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime >= simulatedWaitTime) {
+          clearInterval(fakeChartInterval);
+          finalizeTutorialTrade(entryPrice);
+          return;
+      }
+      
+      const lastCandleIndex = chartSeries.value[0].data.length - 1;
+      const lastCandle = chartSeries.value[0].data[lastCandleIndex];
+      const newClose = lastCandle.y[3] + (Math.random() - 0.45) * 0.0001;
+      const newHigh = Math.max(lastCandle.y[1], newClose);
+      
+      const newData = [...chartSeries.value[0].data];
+      newData[lastCandleIndex] = { ...lastCandle, y: [lastCandle.y[0], newHigh, lastCandle.y[2], newClose] };
+      chart.value.updateSeries([{ data: newData }]);
+
+  }, 300);
 };
+
+const finalizeTutorialTrade = async (entryPrice) => {
+    // Garante que a última vela termine em vitória
+    const lastCandleIndex = chartSeries.value[0].data.length - 1;
+    const lastCandle = chartSeries.value[0].data[lastCandleIndex];
+    const finalClose = entryPrice + 0.0003;
+    const finalHigh = Math.max(lastCandle.y[1], finalClose);
+    const finalData = [...chartSeries.value[0].data];
+    finalData[lastCandleIndex] = { ...lastCandle, y: [lastCandle.y[0], finalHigh, lastCandle.y[2], finalClose] };
+    chart.value.updateSeries([{ data: finalData }]);
+
+    const profit = fictionalBalance.value * 0.87;
+    tutorialProfit.value = profit;
+
+    const chartElement = document.getElementById('chart-container');
+    if (chartElement) {
+        const rect = chartElement.getBoundingClientRect();
+        profitAnimationPosition.value = {
+            top: `${rect.top + 20}px`,
+            left: `${rect.right - 200}px`, 
+        };
+    }
+    showProfitAnimation.value = true;
+    
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    
+    showProfitAnimation.value = false;
+    fictionalBalance.value += profit;
+    
+    if (chart.value) {
+        chart.value.clearAnnotations();
+    }
+        
+    Swal.fire({
+        icon: 'success',
+        title: 'Você Venceu!',
+        html: `
+        <div class="text-white">
+            Parabéns, você lucrou 
+            <strong class="text-green-400">${formatCurrency(profit)}</strong> 
+            nesta operação!
+            <p class="text-gray-300 mt-4">Viu como é fácil? Agora é só ativar sua conta para começar a lucrar de verdade.</p>
+        </div>
+        `,
+        background: 'linear-gradient(135deg, rgba(26,31,53,0.98) 80%, rgba(99,102,241,0.13) 100%)',
+        color: '#fff',
+        confirmButtonColor: '#3B82F6',
+        confirmButtonText: 'Continuar',
+    }).then(() => {
+        isTradeInProgress.value = false;
+        finishTutorial();
+    });
+}
 
 const executeTradeFromSignal = async (signalData) => {
   const { pair, direction, period } = signalData;
@@ -1131,7 +1272,6 @@ const executeTradeFromSignal = async (signalData) => {
   await updateBalance();
   initialBalance.value = balance.value;
 
-  // Obter a configuração de gales do botSettings
   const botSettings = JSON.parse(localStorage.getItem('botSettings') || '{"gales": 2}');
   const maxAttempts = botSettings.gales + 1;
   
@@ -1142,7 +1282,6 @@ const executeTradeFromSignal = async (signalData) => {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (balance.value <= 0) {
       accessBlocked.value = true;
-
       finalResult = { status: 'error', message: 'Saldo insuficiente.' }; break;
     }
 
@@ -1162,16 +1301,13 @@ const executeTradeFromSignal = async (signalData) => {
       }
 
       showTradeNotification('Aguardando resultado da ordem...', pair);
-      // Se o período for 300 segundos (5 minutos), aguarde até o próximo múltiplo de 5 minutos menos 1 minuto e 30 segundos
       if (period === 300) {
         const now = await getServerTime();
         const minutes = now.getMinutes();
 
-        // Próximo múltiplo de 5 minutos
         const nextFive = Math.ceil((minutes + 1) / 5) * 5;
         let target = new Date(now);
         target.setMinutes(nextFive, 0, 0);
-        // Subtrai 1 minuto e 30 segundos
         
         target.setSeconds(target.getSeconds() - 30);
 
@@ -1214,7 +1350,6 @@ const executeTradeFromSignal = async (signalData) => {
   localStorage.removeItem('tradeInProgress');
   localStorage.removeItem('tradeInfo');
 
-  // Atualiza o saldo e mostra os modais se necessário
   await updateAccountGrowthData();
   initialBalance.value = null;
   await updateBalance();
@@ -1259,7 +1394,6 @@ const formatCurrency = (value) => {
   if (value === null || value === undefined) value = 0;
   if (typeof value !== 'number') value = Number(value) || 0;
   
-  // Garantir que o valor tem no máximo duas casas decimais
   value = Math.round(value * 100) / 100;
   
   return new Intl.NumberFormat('pt-BR', { 
@@ -1271,7 +1405,6 @@ const formatCurrency = (value) => {
 };
 
 const switchAccount = async () => {
-  //accountType.value = accountType.value === 'demo' ? 'real' : 'demo'
   accountType.value = 'real';
   await updateBalance()
   await updateAccountGrowthData()
@@ -1634,7 +1767,6 @@ function loadUserSettings() {
 // --- Lifecycle Hooks ---
 onMounted(async () => {
   console.log('Dashboard montado, iniciando configuração...');
-    
   
   await loadSettings();
   
@@ -1658,8 +1790,10 @@ onMounted(async () => {
     }
   } catch (e) { console.error("Não foi possível carregar os ativos", e) }
 
-  await updateChart();
-  chartUpdateInterval = setInterval(updateChart, 15000);
+  // if (!isFirstAccess.value) {
+  //   await updateChart();
+  //   chartUpdateInterval = setInterval(updateChart, 15000);
+  // }
   window.addEventListener('resize', updateTutorialStepUI);
   console.log('Dashboard configurado com sucesso');
 });
@@ -1735,6 +1869,22 @@ watch([selectedAsset, selectedTime], async () => {
   70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
   100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
 }
+
+@keyframes fade-in-pop {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-fade-in-pop {
+    animation: fade-in-pop 0.3s ease-out forwards;
+}
+
 
 .tutorial-functional-highlight {
   position: relative;
